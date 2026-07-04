@@ -1,8 +1,0 @@
-packages:
-  - "."
-allowBuilds:
-  '@firebase/util': true
-  core-js: true
-  deasync: true
-  protobufjs: true
-  yarn: true

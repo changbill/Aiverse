@@ -1,5 +1,5 @@
 {
-  "name": "vibex-app",
+  "name": "frontend",
   "private": true,
   "version": "0.0.0",
   "engines": {
@@ -107,12 +107,5 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2",
     "vite": "^8.0.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "core-js",
-      "deasync",
-      "yarn"
-    ]
   }
 }

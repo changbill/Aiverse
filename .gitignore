@@ -11,10 +11,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Frontend
 node_modules
 dist
 dist-ssr
 *.local
+
+# Backend (Java / Gradle)
+.gradle/
+build/
+target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
 
 # Editor directories and files
 .vscode/*
@@ -26,5 +37,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-.env
