@@ -14,8 +14,6 @@
 
 #### 1단계: 백엔드 공통 기반
 
-- [ ] Gradle에 Security, Validation, JPA, Querydsl, Flyway, MySQL, JWT, S3 SDK, Testcontainers 의존성 구성
-- [ ] `local`·`test`·`prod` 설정과 환경 변수 바인딩 구성
 - [ ] Docker Compose MySQL·MinIO 로컬 실행 환경 구성
 - [ ] 공통 `{data}`·`{data,page}` 응답, 오류 응답, 예외 처리, `requestId` 구성
 - [ ] 초기 Flyway 스키마·인덱스·카테고리·크레딧 상품 seed 작성
