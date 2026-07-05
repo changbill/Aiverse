@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreCompact": [
+      {
+        "matcher": "manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreCompact\",\"additionalContext\":\"컨텍스트가 곧 압축된다. 지금까지의 진행 상황과 다음 할 일을 .harness/STATE.md(진행 중인 작업, 다음으로 예정된 작업 섹션)와 .harness/HANDOFF.md에 반영하라.\"}}'",
+            "shell": "bash"
+          }
+        ]
+      },
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreCompact\",\"additionalContext\":\"컨텍스트가 곧 압축된다. 지금까지의 진행 상황과 다음 할 일을 .harness/STATE.md(진행 중인 작업, 다음으로 예정된 작업 섹션)와 .harness/HANDOFF.md에 반영하라.\"}}'",
+            "shell": "bash"
+          }
+        ]
+      }
+    ]
+  }
+}
