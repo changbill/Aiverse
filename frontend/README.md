@@ -50,4 +50,4 @@ yarn preview   # 로컬에서 production 빌드 확인
 
 ## 문서
 
-- [SPEC.md](./SPEC.md) — 폴더 구조, 라우팅, API 연동, 환경 변수 등 상세 명세
+- [../.harness/ARCHITECTURE.md](../.harness/ARCHITECTURE.md) — 폴더 구조, 라우팅, API 연동, 환경 변수 등 상세 명세

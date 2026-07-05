@@ -1,0 +1,36 @@
+## 하네스: 크로스 툴 작업 연속성
+
+**목표:** Claude Code, Codex, Cursor 중 어떤 도구로 세션을 시작하든, 이전 작업 맥락(계획·진행상황·인수인계)을 이어서 파악하고 작업할 수 있게 한다.
+
+**세션 시작 시 반드시 먼저 읽을 것 (이 순서로):**
+1. `.harness/HANDOFF.md` — 직전 세션이 어디서 멈췄는지
+2. `.harness/STATE.md` — 지금까지 무엇이 완료되었는지
+3. `.harness/ARCHITECTURE.md` — 기술 스택/구조 요약 (코드베이스 재탐색 최소화)
+4. `.harness/PLAN.md` — 현재 진행 중이거나 합의된 계획
+5. 필요 시 `.harness/DECISIONS.md`(과거 결정 이유), `.harness/BACKLOG.md`(미해결 항목)
+
+**작업 워크플로우 (필수):**
+- 새로운 기능/변경 요청을 받으면, 바로 구현하지 말고 `.harness/PLAN.md`에 계획 초안을 작성한다.
+- 사용자에게 계획을 제시하고 피드백을 받아 반영하는 과정을 반복한다.
+- 사용자가 명시적으로 컨펌한 뒤에만 구현을 시작한다.
+- 구현 완료 후 `.harness/STATE.md`를 갱신한다.
+- 세션을 종료하거나 작업을 중단할 때 `.harness/HANDOFF.md`에 다음 세션을 위한 인수인계를 남긴다.
+- 아키텍처/워크플로우에 대한 중요한 결정을 내리면 `.harness/DECISIONS.md`에 이유와 함께 기록한다.
+
+**트리거:** 이 프로젝트에서의 모든 작업 요청에 위 워크플로우를 적용하라. 단순 질문(코드 설명 등)은 하네스 절차 없이 바로 응답 가능.
+
+**변경 이력:**
+| 날짜 | 변경 내용 | 대상 | 사유 |
+|------|----------|------|------|
+| 2026-07-05 | 초기 구성 | `.harness/`, `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/harness.mdc` | Claude Code/Codex/Cursor 간 작업 연속성 확보 |
+
+## 하네스: AIverse 백엔드 구현 에이전트 팀
+
+**목표:** `.harness/ARCHITECTURE.md`에 명세된 DB 스키마와 API를 Spring Boot 코드로 구현.
+
+**트리거:** "AIverse 백엔드 구현해줘", "백엔드 API 만들어줘", "Entity 설계해줘", 콘텐츠/크레딧/구매/대시보드 API 구현·수정·보완 요청 시 `aiverse-backend-builder` 스킬을 사용하라. 이 팀은 Claude Code 전용(TeamCreate/SendMessage 기반)이며 Codex/Cursor에서는 실행할 수 없다.
+
+**변경 이력:**
+| 날짜 | 변경 내용 | 대상 | 사유 |
+|------|----------|------|------|
+| 2026-07-05 | 초기 구성 (backend-architect, api-builder, qa 3인 팀 + 오케스트레이터) | `.claude/agents/{backend-architect,api-builder,qa}.md`, `.claude/skills/aiverse-backend-builder/` | 백엔드 Entity/API 구현이 최우선 순위로 확정됨 |

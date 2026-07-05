@@ -107,8 +107,6 @@ API 서버는 **http://localhost:8080** 에서 실행됩니다.
 
 | 문서 | 내용 |
 | --- | --- |
-| [SPEC.md](./SPEC.md) | 프로젝트 구조 및 전체 명세 |
+| [.harness/ARCHITECTURE.md](./.harness/ARCHITECTURE.md) | 프로젝트 구조, DB 스키마, API 명세 통합 문서 |
 | [frontend/README.md](./frontend/README.md) | 프론트엔드 개요 |
-| [frontend/SPEC.md](./frontend/SPEC.md) | 프론트엔드 상세 명세 |
 | [backend/README.md](./backend/README.md) | 백엔드 개요 |
-| [backend/SPEC.md](./backend/SPEC.md) | 백엔드 상세 명세 |
