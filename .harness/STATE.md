@@ -7,6 +7,7 @@
 
 ## 완료된 작업
 
+- `ARCHITECTURE.md`의 테이블별 컬럼 표와 참고 DDL을 제거하고 Flyway V1·V2를 DB 스키마·기준 데이터의 단일 진실 소스로 연결
 - 1단계 백엔드 공통 기반 (이슈 6) `IntegrationTestSupport` 공통 베이스(`@Testcontainers` + `MySQLContainer` + `@ServiceConnection` + `@ActiveProfiles("test")`)를 추가하고 `AiverseApplicationTests`가 이를 상속하도록 변경. `spring-boot-testcontainers` 의존성 보완. 실제 실행으로 Flyway V1·V2가 컨테이너 MySQL에 적용되고 애플리케이션 컨텍스트가 정상 기동함을 확인, 전체 테스트 11개 통과 — 1단계 백엔드 공통 기반 전체 완료
 - 1단계 백엔드 공통 기반 (이슈 5) Flyway `V1`에 12개 테이블·PK·FK·유니크·CHECK·조회 인덱스, `V2`에 카테고리 8종·크레딧 상품 3종 seed 구현. Spring Boot 4 Flyway starter 보완 후 MySQL 8.0 실제 적용, 재실행 및 전체 테스트 11개 통과
 - 1단계 백엔드 공통 기반 (이슈 4) 단건 `{data}`·목록 `{data,page}` 응답 DTO, 공통 오류 코드·애플리케이션 예외·전역 예외 처리, `X-Request-Id` 응답 헤더·오류 본문·MDC 전파 구현 및 MockMvc 계약 테스트 10개 통과

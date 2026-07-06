@@ -20,6 +20,18 @@
 
 ## 2026-07-06 — Codex
 
+**무엇을 했나:** Flyway와 중복되던 `.harness/ARCHITECTURE.md`의 테이블별 컬럼 표와 참고 DDL 블록을 제거했다. `DB 스키마` 섹션은 실제 스키마·인덱스의 단일 진실 소스인 `V1__create_initial_schema.sql`과 기준 데이터의 단일 진실 소스인 `V2__seed_reference_data.sql` 링크 및 새 버전 마이그레이션 추가 원칙만 남겼다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** `.harness/PLAN.md`의 2단계 회원과 인증부터 진행한다.
+
+**참고사항:** 도메인 정책, seed 정책, API 계약은 아키텍처 설명으로 유지했다. 제거한 것은 Flyway SQL과 직접 중복되는 상세 스키마 정의뿐이다.
+
+---
+
+## 2026-07-06 — Codex
+
 **무엇을 했나:** 이슈 5 초기 Flyway 구성을 구현했다. `V1__create_initial_schema.sql`에 12개 도메인 테이블과 PK·FK·유니크·CHECK·조회 인덱스를, `V2__seed_reference_data.sql`에 카테고리 8종과 크레딧 상품 3종을 작성했다. Spring Boot 4에서 Flyway 자동 구성이 빠진 것을 확인해 `spring-boot-starter-flyway`로 의존성을 보완했다. MySQL 8.0에 V1·V2를 실제 적용해 12개 테이블, seed, 핵심 제약을 조회했고 이미 적용된 DB에서 전체 테스트 11개가 다시 통과했다.
 
 **막힌 부분:** 호스트 3306 포트를 다른 프로젝트의 `funchat-local-mysqldb`가 사용 중이라 검증 중에만 AIverse MySQL을 3307로 노출했다. 다른 컨테이너는 건드리지 않았고, 검증 후 AIverse MySQL을 기존처럼 내부 네트워크 전용의 healthy 상태로 복구했다.
