@@ -6,6 +6,30 @@
 
 ---
 
+## 2026-07-06 — Codex
+
+**무엇을 했나:** 이슈 4 공통 API 계층을 구현했다. 단건 `ApiResponse`, 페이지 `PageResponse`·`PageInfo`, 공통 `ErrorCode`·`ApplicationException`, Validation/JSON/HTTP 메서드/미디어 타입/예상 밖 오류를 처리하는 `GlobalExceptionHandler`, `X-Request-Id`를 응답 헤더·오류 본문·MDC로 전파하는 `RequestIdFilter`를 추가했다. `CommonWebContractTest`의 계약 테스트 10개가 통과했다.
+
+**막힌 부분:** 이슈 4 테스트는 통과했다. 전체 `gradlew test`는 기존 `AiverseApplicationTests.contextLoads()`가 DB 연결 정보 없이 Hibernate dialect를 결정하지 못해 1개 실패한다. 계획된 Testcontainers MySQL 공통 설정 전까지 존재하는 선행 상태다.
+
+**다음에 할 일:** `.harness/PLAN.md` 1단계의 다음 항목인 초기 Flyway 스키마·인덱스·카테고리·크레딧 상품 seed 작성을 진행한다.
+
+**참고사항:** 현재 브랜치는 `feature/4-공통-응답-오류처리-구성`이다. 이전 세션의 `.env` 관련 하네스 변경과 `backend/docker-compose.yml` 미커밋 변경은 그대로 보존했다.
+
+---
+
+## 2026-07-06 — Codex
+
+**무엇을 했나:** `backend/docker-compose.yml`이 요구하는 MySQL·MinIO 변수 6개를 `backend/.env`에 작성했다. `docker compose config --quiet`로 변수 치환과 Compose 구성을 검증하고, `git check-ignore -v backend/.env`로 루트 `.gitignore`의 기존 `.env` 규칙이 적용되는 것을 확인했다.
+
+**막힌 부분:** 없음. Docker 사용자 `config.json` 접근 경고가 출력됐지만 Compose 검증은 종료 코드 0으로 통과했다.
+
+**다음에 할 일:** `.harness/PLAN.md`의 1단계 다음 항목인 공통 응답·오류 처리 구성을 진행한다.
+
+**참고사항:** `backend/.env`는 Git에서 제외되므로 로컬에만 존재한다. 기존 `backend/docker-compose.yml` 수정과 `.claude/settings.local.json`은 건드리지 않았다.
+
+---
+
 ## 2026-07-06 — Claude Code
 
 **무엇을 했나:** PLAN.md 1단계 잔여 항목 중 이슈 3 "Docker Compose MySQL·MinIO 로컬 실행 환경 구성"을 구현. `backend/docker-compose.yml`에 MySQL 8.0, MinIO, 버킷 자동 생성용 `minio-init`(mc) 서비스를 정의했고 값은 `application-local.yaml` 기본값(`aiverse`/`aiverse`/`aiverse`, `minioadmin`/`minioadmin123`, 버킷 `aiverse-local`)과 일치시켰다. 루트/백엔드 `README.md`의 Getting Started에 `docker compose up -d` 안내를 추가했다. Docker Desktop을 직접 기동해 `docker compose up -d`로 실제 실행하고 MySQL 접속(`SELECT 1`), MinIO 헬스체크(`/minio/health/live` 200), 버킷 생성 로그를 확인해 동작을 검증했다.

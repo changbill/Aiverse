@@ -769,6 +769,7 @@ CREATE TABLE `tag` (
 - 정렬 필드는 API별 허용 목록으로 제한하고, 허용되지 않은 필드는 `400 Bad Request`로 처리한다.
 - 오류 응답은 `code`, `message`, `fieldErrors`, `requestId`를 포함한다.
 - `fieldErrors`가 없는 오류는 빈 배열을 반환한다.
+- 요청의 유효한 `X-Request-Id`는 그대로 사용하고, 없거나 유효하지 않으면 UUID를 생성한다. 동일한 값은 응답 `X-Request-Id` 헤더, 오류 본문 `requestId`, 로그 MDC에 사용한다.
 - 인증 실패는 `401`, 권한 부족은 `403`, 리소스 없음은 `404`, 중복·상태 충돌은 `409`를 사용한다.
 
 단건 성공 예시:
