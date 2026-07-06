@@ -6,6 +6,18 @@
 
 ---
 
+## 2026-07-06 — Claude Code
+
+**무엇을 했나:** PLAN.md 1단계 잔여 항목 중 이슈 3 "Docker Compose MySQL·MinIO 로컬 실행 환경 구성"을 구현. `backend/docker-compose.yml`에 MySQL 8.0, MinIO, 버킷 자동 생성용 `minio-init`(mc) 서비스를 정의했고 값은 `application-local.yaml` 기본값(`aiverse`/`aiverse`/`aiverse`, `minioadmin`/`minioadmin123`, 버킷 `aiverse-local`)과 일치시켰다. 루트/백엔드 `README.md`의 Getting Started에 `docker compose up -d` 안내를 추가했다. Docker Desktop을 직접 기동해 `docker compose up -d`로 실제 실행하고 MySQL 접속(`SELECT 1`), MinIO 헬스체크(`/minio/health/live` 200), 버킷 생성 로그를 확인해 동작을 검증했다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** PLAN.md 1단계의 다음 항목인 "공통 `{data}`·`{data,page}` 응답, 오류 응답, 예외 처리, `requestId` 구성"을 이어서 구현한다.
+
+**참고사항:** 브랜치 `feature/3-도커컴포즈-로컬환경-구성`에서 작업. 애플리케이션 기동 검증(Flyway 스키마·Testcontainers 포함)은 이슈 3의 범위가 아니라 1단계 마지막 체크리스트 항목("Testcontainers MySQL 기반 통합 테스트 공통 설정 및 애플리케이션 기동 검증")에서 다룬다 — 지금은 아직 Entity/마이그레이션이 없어 `bootRun`을 실행하면 Flyway/validate 단계에서 실패한다.
+
+---
+
 ## 2026-07-06 — Codex
 
 **무엇을 했나:** `.harness/DECISIONS.md`의 모든 결정을 날짜 내림차순으로 재정렬하고, 새 결정은 표 최상단에 추가하도록 `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/harness.mdc`를 동기화했다.

@@ -95,8 +95,11 @@ yarn dev
 
 ### Backend
 
+로컬 실행에는 MySQL과 MinIO가 필요합니다. Docker Compose로 먼저 띄웁니다.
+
 ```bash
 cd backend
+docker compose up -d
 ./gradlew bootRun        # Linux / macOS
 gradlew.bat bootRun      # Windows
 ```

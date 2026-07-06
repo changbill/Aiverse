@@ -34,6 +34,17 @@ Java 21 + Spring Boot 4.1 + Spring Data JPA + MySQL + Gradle로 구성됩니다.
 
 ## Getting Started
 
+로컬 실행에는 MySQL과 MinIO가 필요합니다. Docker Compose로 먼저 띄웁니다.
+
+```bash
+docker compose up -d
+```
+
+- MySQL: `localhost:3306` (db `aiverse` / user `aiverse` / password `aiverse`)
+- MinIO: API `localhost:9000`, 콘솔 `localhost:9001` (`minioadmin` / `minioadmin123`, 버킷 `aiverse-local` 자동 생성)
+
+그다음 애플리케이션을 실행합니다.
+
 ```bash
 ./gradlew bootRun        # Linux / macOS
 gradlew.bat bootRun      # Windows
@@ -41,7 +52,7 @@ gradlew.bat bootRun      # Windows
 
 API 서버는 **http://localhost:8080** 에서 실행됩니다.
 
-MySQL 연결 설정은 `src/main/resources/application.yaml`에서 관리합니다.
+MySQL·MinIO 연결 설정은 `src/main/resources/application-local.yaml`에서 관리합니다.
 
 ## 문서
 
