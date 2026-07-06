@@ -42,6 +42,8 @@ dependencies {
 	implementation platform('software.amazon.awssdk:bom:2.29.9')
 	implementation 'software.amazon.awssdk:s3'
 
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
