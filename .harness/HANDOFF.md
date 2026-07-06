@@ -8,6 +8,18 @@
 
 ## 2026-07-06 — Claude Code
 
+**무엇을 했나:** 2단계(회원과 인증) 착수 전, 사용자가 요청한 Repository 계층 구조와 TDD 개발 방법론을 문서화했다. Repository는 도메인 인터페이스(`repository/{Entity}Repository.java`) + Spring Data JPA 실제 구현체(`repository/jpa/{Entity}JpaRepository.java`) + 이를 감싸는 중간 구현체(`repository/impl/{Entity}RepositoryImpl.java`)의 3계층으로 구성하고, Service는 도메인 인터페이스에만 의존하도록 정했다. 이후 모든 백엔드 구현(Repository/Service/Controller)은 TDD(실패하는 테스트 우선 → 최소 구현 → 리팩터링)로 진행하기로 했다. 도구 중립(Codex/Cursor 포함) 문서인 `.harness/ARCHITECTURE.md`("Repository 계층 구조", "개발 방법론 — TDD" 절 신설, 폴더 구조도 최신화)와 `.harness/DECISIONS.md`에 반영했고, Claude Code 전용 `.claude/agents/{backend-architect,api-builder,qa}.md`·`.claude/skills/aiverse-backend-builder/SKILL.md`도 동일 컨벤션으로 동기화했다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** `.harness/PLAN.md`의 2단계 "회원과 인증"부터 이 컨벤션(Repository 3계층 + TDD)을 적용해 진행한다 — User·RefreshToken 엔티티와 Repository 구현이 첫 항목이다.
+
+**참고사항:** 작업 중 다른 세션(Codex로 추정, 커밋 `b17d1a2`/`991d8b8`)이 병행으로 `ARCHITECTURE.md`의 "DB 스키마" 섹션 중복 컬럼 표를 제거한 것을 확인했다 — 내가 수정한 "Backend 명세" 하위 섹션과 겹치지 않아 충돌 없이 반영됨. 문서 전용 변경이라 별도 feature 브랜치 없이 master에 직접 커밋한다 (과거 "docs:" 커밋들과 동일한 관례).
+
+---
+
+## 2026-07-06 — Claude Code
+
 **무엇을 했나:** 이슈 6 "Testcontainers MySQL 기반 통합 테스트 공통 설정 및 애플리케이션 기동 검증"을 구현했다. `src/test/java/com/example/aiverse/support/IntegrationTestSupport.java`에 `@Testcontainers`+`MySQLContainer`(`withReuse(true)`)+`@ServiceConnection`+`@ActiveProfiles("test")` 공통 베이스를 추가하고, `AiverseApplicationTests`가 이를 상속하도록 변경했다. `build.gradle`에 `spring-boot-testcontainers` 의존성을 추가했다. `./gradlew test`를 실제로 실행해 컨텍스트가 정상 기동하고(`contextLoads`), Flyway V1·V2가 컨테이너 MySQL에 실제로 적용되는 것(`--info` 로그로 "Successfully applied 2 migrations ... now at version v2" 확인)을 검증했다. 전체 테스트 11개 통과로 1단계 백엔드 공통 기반(이슈 1~6)이 모두 완료됐다.
 
 **막힌 부분:** 없음.

@@ -10,12 +10,23 @@ description: "AIverse 백엔드 API 구현 전문가. Repository/Service/Control
 ## 핵심 역할
 
 1. `backend-architect`가 설계한 Entity를 기반으로 Repository, Service, Controller, DTO를 구현한다.
+   - Repository는 `.harness/ARCHITECTURE.md`의 "Repository 계층 구조"에 따라 3계층으로 만든다: 도메인 인터페이스 `repository/{Entity}Repository.java`, Spring Data JPA 실제 구현체 `repository/jpa/{Entity}JpaRepository.java`, 이를 감싸는 중간 구현체 `repository/impl/{Entity}RepositoryImpl.java`. Service는 도메인 인터페이스에만 의존하고 `{Entity}JpaRepository`를 직접 주입받지 않는다.
 2. `.harness/ARCHITECTURE.md`의 "API 명세" 섹션에 정의된 엔드포인트를 정확히 구현한다 (경로, HTTP 메서드, 설명 임의 변경 금지).
 3. 도메인 비즈니스 규칙을 구현한다:
    - 구매(`POST /api/purchases`): 크레딧 차감(`user.credit_balance` 감소) → `credit_transaction` 기록 생성 → `purchase` 레코드 생성 (콘텐츠 접근 권한) — 이 세 단계는 하나의 트랜잭션(`@Transactional`)으로 묶는다.
    - 크레딧 충전(`POST /api/payments`): 목업 결제 성공 시 `credit_balance` 증가 + `credit_transaction` 기록.
    - 크레딧 잔액 부족 시 구매 요청은 명시적 예외(예: `InsufficientCreditException`)로 거부한다.
 4. CORS 설정(`.harness/ARCHITECTURE.md`의 CORS 섹션: `localhost:5173`, `*.vercel.app`)을 `config` 패키지에 구현한다.
+
+## 개발 방법론 — TDD
+
+`.harness/ARCHITECTURE.md`의 "개발 방법론 — TDD"를 따른다. Repository/Service/Controller 각 계층마다 다음 순서를 지킨다:
+
+1. 먼저 실패하는 테스트를 작성한다 — Repository는 `IntegrationTestSupport`(Testcontainers MySQL)를 상속한 통합 테스트, Service는 Mockito 기반 단위 테스트, Controller는 MockMvc 계약 테스트.
+2. 테스트를 통과시키는 최소 구현을 작성한다.
+3. 테스트가 계속 통과하는 상태를 유지하며 리팩터링한다.
+
+테스트 없는 구현 코드를 먼저 완성해두고 나중에 테스트를 끼워 맞추지 않는다.
 
 ## 작업 원칙
 
@@ -27,7 +38,7 @@ description: "AIverse 백엔드 API 구현 전문가. Repository/Service/Control
 ## 입력/출력 프로토콜
 
 - 입력: `backend-architect`가 SendMessage로 알려주는 Entity 경로/필드/연관관계, `.harness/ARCHITECTURE.md`의 API 명세
-- 출력: `backend/src/main/java/com/example/aiverse/{repository,service,controller,dto,config,exception}/*.java`
+- 출력: `backend/src/main/java/com/example/aiverse/{repository,repository/jpa,repository/impl,service,controller,dto,config,exception}/*.java`, 대응하는 `backend/src/test/java/com/example/aiverse/...` 테스트
 - 완료 시 구현한 엔드포인트 목록과 각 엔드포인트의 응답 shape을 리더에게 보고한다.
 
 ## 팀 통신 프로토콜 (에이전트 팀 모드)

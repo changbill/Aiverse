@@ -190,19 +190,28 @@ frontend/
 
 ```
 backend/
-├── build.gradle             # 의존성 및 빌드 설정
-├── settings.gradle          # 프로젝트명 (aiverse)
-├── gradlew / gradlew.bat    # Gradle Wrapper
+├── build.gradle              # 의존성 및 빌드 설정
+├── settings.gradle           # 프로젝트명 (aiverse)
+├── docker-compose.yml        # 로컬 MySQL·MinIO
+├── gradlew / gradlew.bat     # Gradle Wrapper
 ├── gradle/wrapper/
 └── src/
     ├── main/
     │   ├── java/com/example/aiverse/
-    │   │   └── AiverseApplication.java    # 진입점
+    │   │   ├── AiverseApplication.java    # 진입점
+    │   │   ├── common/                    # 공통 응답·오류·요청 ID
+    │   │   └── repository/                # Repository 계층 (아래 참조)
+    │   │       ├── jpa/
+    │   │       └── impl/
     │   └── resources/
-    │       └── application.yaml           # 앱 설정
+    │       ├── application.yaml           # 공통 설정
+    │       ├── application-{local,test,prod}.yaml
+    │       └── db/migration/              # Flyway V1, V2 ...
     └── test/
         └── java/com/example/aiverse/
-            └── AiverseApplicationTests.java
+            ├── AiverseApplicationTests.java
+            ├── common/
+            └── support/                    # IntegrationTestSupport 등 테스트 공통 설정
 ```
 
 ### 구현 예정 패키지 구조
@@ -212,12 +221,39 @@ com.example.aiverse/
 ├── config/          # CORS, Security, JPA 설정
 ├── controller/      # REST API 엔드포인트
 ├── service/         # 비즈니스 로직
-├── repository/      # JPA Repository
+├── repository/      # Repository 계층 — 아래 "Repository 계층 구조" 참조
 ├── entity/          # JPA Entity
 ├── dto/             # Request / Response DTO
 ├── exception/       # 예외 처리
 └── util/						 # 범용 유틸
 ```
+
+### Repository 계층 구조
+
+Repository는 도메인 인터페이스와 구현을 분리한 3계층으로 구성한다. 서비스 계층은 항상 도메인 인터페이스에만 의존하고, Spring Data JPA 타입을 직접 참조하지 않는다.
+
+```
+repository/
+├── {Entity}Repository.java          # 도메인 인터페이스 (서비스가 의존하는 포트)
+├── jpa/
+│   └── {Entity}JpaRepository.java   # Spring Data JpaRepository — 실제 구현체 (Spring이 런타임에 생성)
+└── impl/
+    └── {Entity}RepositoryImpl.java  # 도메인 인터페이스를 구현하는 중간 구현체(어댑터), 내부에서 {Entity}JpaRepository/Querydsl을 사용
+```
+
+- 서비스는 `{Entity}Repository`(인터페이스)만 주입받는다.
+- 단순 CRUD·Querydsl 동적 쿼리가 필요한 조회는 `{Entity}RepositoryImpl`에서 `{Entity}JpaRepository`와 `JPAQueryFactory`를 조합해 구현한다.
+- 이 구조는 모든 모듈(Content/Credit/Purchase/Dashboard 등)의 Repository에 동일하게 적용한다.
+
+### 개발 방법론 — TDD
+
+모든 백엔드 구현(Repository/Service/Controller)은 테스트 주도 개발(TDD)로 진행한다.
+
+1. 요구사항을 검증하는 테스트를 먼저 작성하고 실패를 확인한다 (Repository는 Testcontainers MySQL, Service는 단위 테스트, Controller는 MockMvc 계약 테스트).
+2. 테스트를 통과시키는 최소 구현을 작성한다.
+3. 테스트가 계속 통과하는 상태를 유지하며 리팩터링한다.
+
+구현 코드보다 테스트를 먼저 커밋하거나, 최소한 구현과 테스트를 같은 단위로 묶어 테스트 없는 구현이 남지 않도록 한다.
 
 ### Gradle Commands
 
