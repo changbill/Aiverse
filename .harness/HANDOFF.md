@@ -8,6 +8,18 @@
 
 ## 2026-07-06 — Claude Code
 
+**무엇을 했나:** 이슈 9 "Access token 발급과 Security 인증 필터 구현"을 진행했다(이번부터 서브에이전트 없이 직접 구현 — 아래 참고). `JwtAuthenticationFilter`가 유효한 토큰이면 `SecurityContext`에 인증을 설정하고, 유효하지 않은 토큰은 `RestAuthenticationEntryPoint`를 직접 호출해 401(`INVALID_TOKEN`)로 즉시 응답하며, 헤더가 아예 없는 경우는 Security 인가 단계가 자연스럽게 401(`AUTHENTICATION_REQUIRED`)로 처리하도록 설계했다. `SecurityConfig`(`SecurityBeansConfig`에서 이름 변경)에 `SecurityFilterChain`을 구성해 `register`/`login`/Swagger 경로만 `permitAll`, 나머지는 인증 필요로 설정했다. `AuthController.me`/`AuthService.getCurrentUser`를 `@AuthenticationPrincipal Long userId` 기반으로 단순화했다. `RequestIdFilter`에 `@Order(HIGHEST_PRECEDENCE)`를 추가해 Security 필터보다 먼저 실행되도록 고쳤다(안 그러면 Security 단계의 401 응답에 requestId가 안 붙는 문제가 있었다). 실제 필터 체인 동작을 검증하는 `SecurityFilterChainTest`(`@AutoConfigureMockMvc` + 실제 컨텍스트)를 추가했다.
+
+**막힌 부분:** 진행 중 `springdoc-openapi-starter-webmvc-ui:2.8.5`가 Spring Data 4.1과 호환되지 않아(`TypeInformation` 클래스 패키지 이동) 전체 컨텍스트 기동이 실패하는 문제를 만났다 — `3.0.3`으로 올려서 해결했다. 지금은 막힌 것 없음.
+
+**다음에 할 일:** PLAN.md 2단계의 마지막 두 항목 "Refresh token 쿠키·해시 저장·회전·로그아웃 구현"과 "입력 검증, 중복 이메일·닉네임, 비활성 계정, 인증 오류 테스트"를 진행한다.
+
+**참고사항:** 사용자가 "이 프로젝트는 단일 에이전트로 충분하니 서브에이전트를 쓰지 말라"고 명시적으로 요청했다 — `CLAUDE.md`의 "AIverse 백엔드 구현 에이전트 팀" 섹션을 "단일 에이전트" 섹션으로 갱신했다. 이후 세션(어떤 도구든)은 `backend-architect`/`api-builder`/`qa`나 `aiverse-backend-builder` 스킬을 트리거하지 말고 직접 구현할 것. 서브에이전트 호출은 매번 7~14분씩 걸려 이 프로젝트 규모에는 비효율적이었다.
+
+---
+
+## 2026-07-06 — Claude Code
+
 **무엇을 했나:** 이슈 8 코드에 대한 사용자 피드백 2건을 반영해 컨벤션으로 굳혔다. (1) `AuthController.extractBearerToken`(private 메서드)을 `util/BearerTokenExtractor.extract(...)`(static)로 분리 — Controller는 라우팅만 담당한다는 원칙. (2) `register`가 `ResponseEntity<ApiResponse<RegisterResponse>>`를 반환하던 것을 `login`/`me`와 동일하게 `ApiResponse<T>` 반환 + `@ResponseStatus(HttpStatus.CREATED)`로 통일 — Controller 반환 타입은 항상 `ApiResponse<T>`/`PageResponse<T>`로 고정하고 `ResponseEntity`는 쓰지 않는다. 두 건 모두 `.harness/DECISIONS.md`·`ARCHITECTURE.md`(공통 응답 규격)와 `.claude/agents/api-builder.md` 작업 원칙에 반영해 다음 Controller 작업부터 자동으로 지켜지게 했다.
 
 **막힌 부분:** 없음.

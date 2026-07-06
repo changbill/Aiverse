@@ -7,6 +7,7 @@
 
 ## 완료된 작업
 
+- 2단계 회원과 인증 (이슈 9) `SecurityFilterChain` 구성 완료: `JwtAuthenticationFilter`(`OncePerRequestFilter`, `BearerTokenExtractor`+`JwtTokenProvider` 재사용)가 유효한 토큰이면 `SecurityContext`에 인증 정보를 설정하고, 유효하지 않은 토큰은 `RestAuthenticationEntryPoint`로 즉시 401(`INVALID_TOKEN`) 응답, 헤더 없음은 Security 인가 단계가 401(`AUTHENTICATION_REQUIRED`)로 처리. `POST /api/auth/{register,login}`과 Swagger 경로만 `permitAll`, 나머지는 인증 필요. `AuthController.me`는 `@AuthenticationPrincipal Long userId`로 단순화(수동 헤더 파싱 제거), `AuthService.getCurrentUser`도 `Long userId`를 직접 받도록 변경. `RequestIdFilter`에 `@Order(HIGHEST_PRECEDENCE)`를 추가해 Security 필터보다 먼저 실행되도록 수정(401 응답에도 `requestId`가 정확히 반영됨). 실제 필터 체인을 검증하는 통합 테스트(`SecurityFilterChainTest`, `IntegrationTestSupport`+`@AutoConfigureMockMvc`) 추가. 진행 중 `springdoc-openapi-starter-webmvc-ui:2.8.5`가 Spring Data 4.1(`TypeInformation` 패키지 이동)과 호환되지 않아 컨텍스트 기동이 실패하는 문제를 발견해 `3.0.3`으로 업그레이드해 해결
 - Controller 리팩터 2건: (1) `AuthController`의 Bearer 토큰 파싱을 `util/BearerTokenExtractor`(static, 단위 테스트 포함)로 분리해 Controller가 라우팅만 담당하도록 정리 (2) `register`가 쓰던 `ResponseEntity<ApiResponse<T>>`를 다른 엔드포인트와 동일하게 `ApiResponse<T>` 반환 + `@ResponseStatus(CREATED)`로 통일. 두 컨벤션 모두 `.claude/agents/api-builder.md` 작업 원칙과 `.harness/ARCHITECTURE.md`/`DECISIONS.md`에 반영
 - 백엔드에 `springdoc-openapi-starter-webmvc-ui`로 Swagger UI(`/swagger-ui.html`, `/v3/api-docs`) 도입, `config/OpenApiConfig`에 JWT Bearer 보안 스키마(`bearer-jwt`) 등록 — 이후 Controller마다 `@Tag`/`@Operation`/`@SecurityRequirement` 부여
 - 2단계 회원과 인증 (이슈 8) 회원가입·로그인·현재 사용자 조회(`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`)를 TDD로 구현. `JwtTokenProvider`(HMAC-SHA256, jjwt)로 Access token 발급/검증, `AuthErrorCode`(중복 이메일·닉네임, 인증 실패 등) 추가. `GET /api/auth/me`는 Security 필터가 아직 없어 컨트롤러가 `Authorization` 헤더를 직접 파싱하는 임시 구현 — 다음 이슈(Security 필터)에서 대체 예정. 테스트 25개(Service 10·Controller 11·JwtTokenProvider 4) 통과
@@ -32,7 +33,7 @@
 
 ## 진행 중인 작업
 
-- 2단계 회원과 인증: 이슈 7·8 완료, 다음은 Access token 발급과 Security 인증 필터 구현 (PLAN.md 2단계 체크리스트 참조)
+- 2단계 회원과 인증: 이슈 7·8·9 완료, 다음은 Refresh token 쿠키·해시 저장·회전·로그아웃 구현 (PLAN.md 2단계 체크리스트 참조)
 
 ## 다음으로 예정된 작업
 
