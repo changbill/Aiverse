@@ -552,12 +552,12 @@ https://*.vercel.app            # Vercel 배포
 | id                | bigint   | PK                  |
 | user_id           | bigint   | FK → user           |
 | credit_product_id | bigint   | FK → credit_product |
-| idempotency_key   | varchar  | unique              |
+| idempotency_key   | varchar  | 사용자별 unique     |
 | amount            | int      |                     |
 | method            | varchar  |                     |
 | status            | varchar  |                     |
 | transaction_key   | varchar  | nullable            |
-| paid_at           | varchar  | nullable            |
+| paid_at           | datetime | nullable            |
 | failed_reason     | varchar  | nullable            |
 | created_at        | datetime |                     |
 
@@ -567,7 +567,7 @@ https://*.vercel.app            # Vercel 배포
 | ------------- | -------- | --------- |
 | id            | bigint   | PK        |
 | user_id       | bigint   | FK → user |
-| payment_id    | varchar  | nullable  |
+| payment_id    | bigint   | nullable, FK → payment |
 | type          | varchar  | CHARGE / PURCHASE / SALE |
 | amount        | int      |           |
 | balance_after | int      |           |
@@ -582,7 +582,7 @@ https://*.vercel.app            # Vercel 배포
 | user_id               | bigint   | FK → user               |
 | asset_id              | bigint   | FK → asset              |
 | credit_transaction_id | bigint   | FK → credit_transaction |
-| idempotency_key        | varchar  | unique                  |
+| idempotency_key        | varchar  | 사용자별 unique         |
 | purchase_price_credit | int      |                         |
 | license_type          | varchar  |                         |
 | purchased_at          | datetime |                         |
@@ -700,7 +700,7 @@ CREATE TABLE `asset_tag` (
 CREATE TABLE `credit_transaction` (
 	`id` bigint NOT NULL,
 	`user_id` bigint NOT NULL,
-	`payment_id` varchar NULL,
+	`payment_id` bigint NULL,
 	`type` varchar NOT NULL,
 	`amount` int NOT NULL,
 	`balance_after` int NOT NULL,
@@ -713,7 +713,7 @@ CREATE TABLE `purchase` (
 	`user_id` bigint NOT NULL,
 	`asset_id` bigint NOT NULL,
 	`credit_transaction_id` bigint NOT NULL,
-	`idempotency_key` varchar NOT NULL COMMENT 'unique',
+	`idempotency_key` varchar NOT NULL COMMENT 'unique per user',
 	`purchase_price_credit` int NOT NULL,
 	`license_type` varchar NOT NULL,
 	`purchased_at` datetime NOT NULL
@@ -736,12 +736,12 @@ CREATE TABLE `payment` (
 	`id` bigint NOT NULL,
 	`user_id` bigint NOT NULL,
 	`credit_product_id` bigint NOT NULL,
-	`idempotency_key` varchar NOT NULL COMMENT 'unique',
+	`idempotency_key` varchar NOT NULL COMMENT 'unique per user',
 	`amount` int NOT NULL,
 	`method` varchar NOT NULL,
 	`status` varchar NOT NULL,
 	`transaction_key` varchar NULL,
-	`paid_at` varchar NULL,
+	`paid_at` datetime NULL,
 	`failed_reason` varchar NULL,
 	`created_at` datetime NOT NULL
 );
