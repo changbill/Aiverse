@@ -2,6 +2,7 @@ package com.example.aiverse.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -36,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/register", "/api/auth/login", "/api/auth/reissue", "/api/auth/logout"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories", "/api/tags").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )

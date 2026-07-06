@@ -24,7 +24,7 @@
 
 ## 진행 중인 단계
 
-- **3단계 카테고리·태그·콘텐츠 탐색** (`feature/12-...`): `Category`/`Tag`/`Asset`/`AssetTag` Entity와 Repository(3계층, 조회 중심) 완료. 나머지 4개 체크리스트 항목 진행 예정 — 자세한 내용은 `PLAN.md` 참조.
+- **3단계 카테고리·태그·콘텐츠 탐색** (`feature/12-...`): `Category`/`Tag`/`Asset`/`AssetTag` Entity+Repository, `GET /api/categories`·`GET /api/tags`(사용량순 검색) 완료. 나머지 3개 체크리스트 항목 진행 예정 — 자세한 내용은 `PLAN.md` 참조.
 
 ## 다음 단계
 

@@ -1,11 +1,14 @@
 package com.example.aiverse.repository.impl;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import com.example.aiverse.entity.Tag;
 import com.example.aiverse.repository.TagRepository;
+import com.example.aiverse.repository.TagUsage;
 import com.example.aiverse.repository.jpa.TagJpaRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,5 +32,10 @@ public class TagRepositoryImpl implements TagRepository {
     @Override
     public boolean existsByName(String name) {
         return tagJpaRepository.existsByName(name);
+    }
+
+    @Override
+    public List<TagUsage> searchOrderByUsage(String query, int limit) {
+        return tagJpaRepository.searchOrderByUsage(query, PageRequest.of(0, limit));
     }
 }
