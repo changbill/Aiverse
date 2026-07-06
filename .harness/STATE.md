@@ -25,7 +25,7 @@
 
 ## 진행 중인 단계
 
-- **3단계 카테고리·태그·콘텐츠 탐색** (`feature/12-...`): `Category`/`Tag`/`Asset`/`AssetTag` Entity+Repository, `GET /api/categories`·`GET /api/tags`(사용량순 검색) 완료. 나머지 3개 체크리스트 항목 진행 예정 — 자세한 내용은 `PLAN.md` 참조.
+- **3단계 카테고리·태그·콘텐츠 탐색** (`feature/12-...`): `Category`/`Tag`/`Asset`/`AssetTag` Entity+Repository, `GET /api/categories`·`GET /api/tags`, 최소 `Purchase` 읽기 모델과 Querydsl 콘텐츠 검색·필터·정렬·페이지네이션 및 `GET /api/contents` 목록 완료. 나머지 2개 체크리스트 항목 진행 예정 — 자세한 내용은 `PLAN.md` 참조.
 
 ## 다음 단계
 

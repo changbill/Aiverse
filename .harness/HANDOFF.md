@@ -9,6 +9,18 @@
 
 ## 2026-07-06 — Codex
 
+**무엇을 했나:** 3단계의 Querydsl 콘텐츠 목록을 구현했다. 구매 횟수 기반 `POPULAR` 정렬을 위해 최소 `Purchase` 읽기 엔티티를 선행하고, 검색(제목·설명·태그), 유형·카테고리·태그·가격·창작자 필터, `LATEST`·`POPULAR`·가격 정렬, 페이징을 `AssetRepositoryImpl`에 추가했다. 목록 쿼리는 `creator`·`category`의 `XToOne`만 fetch join한다. 목록 Service·Controller·DTO를 추가하고 공개 GET 경로로 등록했다.
+
+**막힌 부분:** 없음. `AssetRepositoryTest`와 `AssetControllerTest` 통과.
+
+**다음에 할 일:** 콘텐츠 상세 조회와 `view_count` 증가 구현.
+
+**참고사항:** 목록 DTO에서는 태그 컬렉션을 제외하고 상세 DTO에서만 제공하도록 API 명세를 조정했다. `Purchase`의 생성·정산 도메인 로직은 6단계에서 확장한다.
+
+---
+
+## 2026-07-06 — Codex
+
 **무엇을 했나:** JPA 조회 최적화 규칙을 `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/harness.mdc`에 동일하게 추가하고 `ARCHITECTURE.md`·`DECISIONS.md`에 동기화했다. N+1은 명시적 JPQL/Querydsl fetch join으로 해결하고 `@EntityGraph`는 사용하지 않으며, 페이징 목록은 `XToOne`만 fetch join하고 목록·상세 DTO를 분리하도록 정했다. 기존 `AssetTagJpaRepository.findByAssetId`의 `@EntityGraph`도 `JOIN FETCH assetTag.tag` JPQL로 교체했다.
 
 **막힌 부분:** 없음. `AssetTagRepositoryTest` 통과.

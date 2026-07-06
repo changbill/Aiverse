@@ -1,0 +1,47 @@
+package com.example.aiverse.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.aiverse.common.response.PageResponse;
+import com.example.aiverse.dto.AssetListResponse;
+import com.example.aiverse.entity.AssetType;
+import com.example.aiverse.repository.AssetSearchCondition;
+import com.example.aiverse.repository.AssetSort;
+import com.example.aiverse.service.AssetService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+
+@Tag(name = "Content")
+@RestController
+@RequestMapping("/api/contents")
+@RequiredArgsConstructor
+public class AssetController {
+
+    private final AssetService assetService;
+
+    @Operation(summary = "콘텐츠 목록 검색")
+    @GetMapping
+    public PageResponse<AssetListResponse> search(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) AssetType type,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) Integer minPrice,
+            @RequestParam(required = false) Integer maxPrice,
+            @RequestParam(required = false) Long creatorId,
+            @RequestParam(defaultValue = "LATEST") AssetSort sort,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return assetService.search(
+                new AssetSearchCondition(search, type, categoryId, tag, minPrice, maxPrice, creatorId, sort),
+                page,
+                size
+        );
+    }
+}

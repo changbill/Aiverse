@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 
 import com.example.aiverse.entity.Asset;
 import com.example.aiverse.entity.AssetStatus;
@@ -67,5 +68,35 @@ class AssetRepositoryTest extends IntegrationTestSupport {
                 .get()
                 .extracting(Asset::getViewCount)
                 .isEqualTo(1L);
+    }
+
+    @Test
+    void 조건에_맞는_콘텐츠를_가격순으로_페이징한다() {
+        User creator = userRepository.save(User.register("search@example.com", "encoded-password", "검색창작자"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        assetRepository.save(asset(creator, category, "저가 이미지", AssetType.IMAGE, 50));
+        assetRepository.save(asset(creator, category, "중가 이미지", AssetType.IMAGE, 100));
+        assetRepository.save(asset(creator, category, "고가 음악", AssetType.MUSIC, 200));
+
+        var condition = new AssetSearchCondition(
+                "이미지", AssetType.IMAGE, category.getId(), null,
+                50, 150, creator.getId(), AssetSort.PRICE_ASC
+        );
+        var result = assetRepository.search(condition, PageRequest.of(0, 1));
+
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.hasNext()).isTrue();
+        assertThat(result.getContent())
+                .extracting(Asset::getTitle)
+                .containsExactly("저가 이미지");
+        assertThat(result.getContent().getFirst().getCreator().getNickname()).isEqualTo("검색창작자");
+    }
+
+    private Asset asset(User creator, Category category, String title, AssetType type, int price) {
+        return Asset.register(
+                creator, title, "검색 설명", type, category,
+                null, "original/" + title, title, "application/octet-stream",
+                1000L, price, null, LicenseType.PERSONAL
+        );
     }
 }

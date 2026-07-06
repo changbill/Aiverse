@@ -697,7 +697,7 @@ https://*.vercel.app            # Vercel 배포
 
 **좋아요(likes) 미구현:** 프론트 UI에 표시 필드는 있으나 "좋아요 누르기" 상호작용이 없어 `asset`에 `like_count` 컬럼을 추가하지 않는다. 프론트의 좋아요 표시는 추후 정리 대상 (`.harness/BACKLOG.md` 참조).
 
-**`GET /api/contents` 응답** — 목록 항목은 원본 파일 정보(`originalObjectKey` 등)를 노출하지 않는다. 구매 전 사용자에게는 미리보기만 제공한다.
+**`GET /api/contents` 응답** — 목록 DTO는 페이징을 보존하도록 `XToOne` 정보만 포함하며 태그 컬렉션은 상세 응답에서 제공한다. 원본 파일 정보(`originalObjectKey` 등)는 노출하지 않는다.
 
 ```json
 {
@@ -715,7 +715,6 @@ https://*.vercel.app            # Vercel 배포
       "viewCount": 37,
       "creatorId": 5,
       "creatorNickname": "홍길동",
-      "tags": ["cyberpunk", "city", "sunset"],
       "createdAt": "2026-07-06T00:00:00.000000"
     }
   ],
