@@ -14,7 +14,6 @@
 
 #### 1단계: 백엔드 공통 기반
 
-- [ ] Docker Compose MySQL·MinIO 로컬 실행 환경 구성
 - [ ] 공통 `{data}`·`{data,page}` 응답, 오류 응답, 예외 처리, `requestId` 구성
 - [ ] 초기 Flyway 스키마·인덱스·카테고리·크레딧 상품 seed 작성
 - [ ] Testcontainers MySQL 기반 통합 테스트 공통 설정 및 애플리케이션 기동 검증
