@@ -147,10 +147,9 @@ class AuthServiceTest {
     @Test
     void 현재_사용자_정보를_조회한다() {
         User user = withId(User.register("user@example.com", "encoded-password", "닉네임"), 1L);
-        given(jwtTokenProvider.parseUserId("valid-token")).willReturn(1L);
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
 
-        MeResponse response = authService.getCurrentUser("valid-token");
+        MeResponse response = authService.getCurrentUser(1L);
 
         assertThat(response.id()).isEqualTo(1L);
         assertThat(response.email()).isEqualTo("user@example.com");
@@ -159,22 +158,10 @@ class AuthServiceTest {
     }
 
     @Test
-    void 잘못되거나_만료된_토큰으로_조회하면_예외가_발생한다() {
-        given(jwtTokenProvider.parseUserId("invalid-token"))
-                .willThrow(new ApplicationException(AuthErrorCode.INVALID_TOKEN));
-
-        assertThatThrownBy(() -> authService.getCurrentUser("invalid-token"))
-                .isInstanceOf(ApplicationException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_TOKEN);
-    }
-
-    @Test
     void 토큰은_유효하지만_사용자가_존재하지_않으면_예외가_발생한다() {
-        given(jwtTokenProvider.parseUserId("valid-token")).willReturn(999L);
         given(userRepository.findById(999L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> authService.getCurrentUser("valid-token"))
+        assertThatThrownBy(() -> authService.getCurrentUser(999L))
                 .isInstanceOf(ApplicationException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.INVALID_TOKEN);

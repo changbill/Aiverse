@@ -6,6 +6,8 @@
 
 | 날짜 | 결정 | 이유 |
 |------|------|------|
+| 2026-07-06 | `springdoc-openapi-starter-webmvc-ui`는 `2.x`가 아니라 `3.0.3` 이상을 사용한다 | `2.8.5`는 Spring Data 4.1에서 `TypeInformation`이 `org.springframework.data.util`→`org.springframework.data.core`로 옮겨진 것과 호환되지 않아 Querydsl 웹 지원 빈 생성 시 `NoClassDefFoundError`로 전체 컨텍스트 기동이 실패했다. `3.0.3`은 이 API 변경에 대응한 메이저 버전이라 정상 동작한다 |
+| 2026-07-06 | AIverse 백엔드 구현은 `backend-architect`/`api-builder`/`qa` 서브에이전트나 `aiverse-backend-builder` 스킬의 팀 워크플로우를 쓰지 않고 단일 에이전트(Claude Code 본체)가 직접 수행한다 | 프로젝트 규모가 작아 서브에이전트 팀까지 필요하지 않고, 매 호출이 여러 분 걸려 이 규모에는 비효율적이라는 사용자 피드백 반영 |
 | 2026-07-06 | 소스 코드 변경이 없는 순수 문서/설정 작업(`.harness/*.md`, 에이전트 정의 파일 등)은 feature 브랜치 없이 master에 바로 커밋한다. 브랜치 전략은 실제 코드 변경이 있는 작업에만 적용한다 | 문서만 고치는 작업까지 매번 브랜치를 만들고 병합·삭제하는 건 과도한 절차라는 사용자 피드백 반영 |
 | 2026-07-06 | Controller는 항상 `ApiResponse<T>`/`PageResponse<T>`를 반환 타입으로 선언하고 `ResponseEntity`로 감싸지 않는다. `200`이 아닌 상태 코드는 `@ResponseStatus`로 지정한다 | 일부는 `ApiResponse<T>`를, 일부는 `ResponseEntity<ApiResponse<T>>`를 반환해 형식이 갈라지고 있어, 응답 형식을 하나로 고정해 모든 Controller가 같은 패턴을 따르게 하기 위해 |
 | 2026-07-06 | `springdoc-openapi-starter-webmvc-ui`로 Swagger UI(`/swagger-ui.html`, `/v3/api-docs`)를 제공하고, 이후 만드는 모든 Controller에 `@Tag`/`@Operation`과 (Access token 필요 시) `@SecurityRequirement("bearer-jwt")`를 붙인다 | API 명세 문서(`.harness/ARCHITECTURE.md`)와는 별도로 실행 중인 서버에서 바로 요청을 시도해볼 수 있는 대화형 문서가 필요하기 때문에 |

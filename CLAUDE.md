@@ -40,8 +40,8 @@
 - master에 병합한 뒤에는 병합된 feature 브랜치를 삭제하고 master 브랜치로 전환한 상태를 유지한다. 다음 이슈는 항상 master에서 새 브랜치를 생성해 시작한다.
 - 브랜치·커밋·병합은 로컬에서만 진행한다. 원격 push나 PR 생성은 사용자가 별도로 요청할 때만 수행한다.
 
-## 하네스: AIverse 백엔드 구현 에이전트 팀
+## 하네스: AIverse 백엔드 구현 — 단일 에이전트
 
 **목표:** `.harness/ARCHITECTURE.md`에 명세된 DB 스키마와 API를 Spring Boot 코드로 구현.
 
-**트리거:** "AIverse 백엔드 구현해줘", "백엔드 API 만들어줘", "Entity 설계해줘", 콘텐츠/크레딧/구매/대시보드 API 구현·수정·보완 요청 시 `aiverse-backend-builder` 스킬을 사용하라. 이 팀은 Claude Code 전용(TeamCreate/SendMessage 기반)이며 Codex/Cursor에서는 실행할 수 없다.
+이 프로젝트는 단일 에이전트로 충분히 처리 가능한 규모다. Entity 설계, Repository/Service/Controller 구현, 검증까지 모두 Read/Edit/Write/Bash로 직접 수행하고, `backend-architect`/`api-builder`/`qa` 서브에이전트나 `aiverse-backend-builder` 스킬의 팀 기반 워크플로우(TeamCreate/SendMessage)는 사용하지 않는다. 서브에이전트 호출은 매번 여러 분이 걸려 이 규모의 작업에는 비효율적이다. 정말 막혀서 다른 관점이 필요한 경우가 아니면 에이전트를 새로 띄우지 말고 직접 구현한다.

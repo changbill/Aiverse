@@ -57,8 +57,7 @@ public class AuthService {
         return LoginResponse.of(accessToken, user);
     }
 
-    public MeResponse getCurrentUser(String accessToken) {
-        Long userId = jwtTokenProvider.parseUserId(accessToken);
+    public MeResponse getCurrentUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApplicationException(AuthErrorCode.INVALID_TOKEN));
         return MeResponse.from(user);

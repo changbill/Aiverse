@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.slf4j.MDC;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -12,6 +14,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+// Spring Security의 필터 체인이 HIGHEST_PRECEDENCE + 100으로 등록되므로,
+// requestId가 Security 단계의 401 응답에도 반영되려면 이 필터가 그보다 먼저 실행돼야 한다.
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @Component
 public class RequestIdFilter extends OncePerRequestFilter {
 
