@@ -12,10 +12,6 @@
 **범위:** Spring Boot REST API, MySQL·MinIO 로컬 환경, 통합 테스트, VibeX SDK 제거 및 React 연동을 포함한다. 외부 실결제, 미디어 변환, 관리자 API, 이메일 인증은 포함하지 않는다.
 **단계:**
 
-#### 2단계: 회원과 인증
-
-- [ ] 입력 검증, 중복 이메일·닉네임, 비활성 계정, 인증 오류 테스트
-
 #### 3단계: 카테고리·태그·콘텐츠 탐색
 
 - [ ] Category·Tag·Asset·AssetTag 엔티티와 조회 Repository 구현

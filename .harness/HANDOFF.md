@@ -8,6 +8,18 @@
 
 ## 2026-07-06 — Claude Code
 
+**무엇을 했나:** 이슈 11 "입력 검증, 중복 이메일·닉네임, 비활성 계정, 인증 오류 테스트"를 진행했다. 새 프로덕션 코드를 추가하지 않고, 기존 테스트(`AuthServiceTest`/`AuthControllerTest`/`SecurityFilterChainTest`)를 감사해 실제로 빠진 케이스만 보강하는 방식으로 접근했다. 회원가입 요청의 이메일/비밀번호/닉네임 필수값 누락, 비밀번호 최대 길이 초과(65자), 닉네임 최소/최대 길이 초과(1자/21자) 400 케이스와 로그인 요청의 이메일/비밀번호 필수값 누락·이메일 형식 오류 400 케이스, 닉네임 앞뒤 공백 제거 검증을 `AuthControllerTest`/`AuthServiceTest`에 추가했다. 중복 이메일·닉네임(409), 비활성 계정 로그인 거부, 각종 401(토큰 없음/유효하지 않음/만료·폐기된 refresh 토큰)은 이슈 8~10에서 이미 충분히 테스트되어 있어 그대로 두었다. 이로써 **2단계 회원과 인증(이슈 7~11)이 모두 완료**됐다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** PLAN.md 3단계 "카테고리·태그·콘텐츠 탐색"을 시작한다 — 첫 항목은 "Category·Tag·Asset·AssetTag 엔티티와 조회 Repository 구현"이다. 이미 확립된 컨벤션(Repository 3계층, TDD, Swagger 애노테이션, `ApiResponse` 고정 반환, Controller는 라우팅만)을 그대로 따르면 된다.
+
+**참고사항:** 이 이슈는 순수 테스트 보강이라 실질적으로 코드 리뷰/커버리지 감사에 가까웠다. 앞으로 비슷한 "테스트 보강" 이슈를 만나면 무작정 새 테스트를 나열하기보다 먼저 기존 테스트 목록을 훑어 진짜 빈 곳만 채우는 이번 접근이 효율적이었다.
+
+---
+
+## 2026-07-06 — Claude Code
+
 **무엇을 했나:** 이슈 10 "Refresh token 쿠키·해시 저장·회전·로그아웃 구현"을 서브에이전트 없이 직접 TDD로 구현했다. `security/RefreshTokenGenerator`(SecureRandom 32바이트 원문 + SHA-256 해시), `util/RefreshTokenCookieSupport`(HttpOnly·Secure·SameSite=None·Path=/api/auth)를 새로 만들고, `AuthService.login`이 Access token과 함께 Refresh token을 발급하도록 확장했다(`LoginResult` 레코드로 컨트롤러에 원문 토큰 전달, DB에는 해시만 저장). `POST /api/auth/reissue`(기존 토큰 폐기 후 새 토큰 발급 = 회전)와 `POST /api/auth/logout`(해당 세션만 폐기, 204)을 추가하고 `SecurityConfig`에서 이 두 경로를 `permitAll`로 등록했다(Access token이 아니라 Refresh token 쿠키로 자체 인증하는 경로라서). `SecurityFilterChainTest`에 로그인→쿠키 확인→재발급→회전된 토큰 재사용 시 차단→로그아웃 흐름을 실제 필터 체인으로 검증하는 테스트를 추가했다.
 
 **막힌 부분:** 중간에 Lombok `@RequiredArgsConstructor`가 `@Value` 애노테이션을 생성자 파라미터로 복사하지 못해 `AuthController`에서 `No qualifying bean of type 'long'` 오류가 났다 — `@RequiredArgsConstructor` 대신 명시적 생성자로 바꿔 해결했다(이슈 8의 `AuthService`에서도 이미 같은 이유로 명시적 생성자를 썼었다).
