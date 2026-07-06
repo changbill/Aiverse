@@ -8,6 +8,18 @@
 
 ## 2026-07-06 — Codex
 
+**무엇을 했나:** 이슈 5 초기 Flyway 구성을 구현했다. `V1__create_initial_schema.sql`에 12개 도메인 테이블과 PK·FK·유니크·CHECK·조회 인덱스를, `V2__seed_reference_data.sql`에 카테고리 8종과 크레딧 상품 3종을 작성했다. Spring Boot 4에서 Flyway 자동 구성이 빠진 것을 확인해 `spring-boot-starter-flyway`로 의존성을 보완했다. MySQL 8.0에 V1·V2를 실제 적용해 12개 테이블, seed, 핵심 제약을 조회했고 이미 적용된 DB에서 전체 테스트 11개가 다시 통과했다.
+
+**막힌 부분:** 호스트 3306 포트를 다른 프로젝트의 `funchat-local-mysqldb`가 사용 중이라 검증 중에만 AIverse MySQL을 3307로 노출했다. 다른 컨테이너는 건드리지 않았고, 검증 후 AIverse MySQL을 기존처럼 내부 네트워크 전용의 healthy 상태로 복구했다.
+
+**다음에 할 일:** `.harness/PLAN.md` 1단계의 마지막 항목인 Testcontainers MySQL 기반 통합 테스트 공통 설정 및 애플리케이션 기동 검증을 진행한다.
+
+**참고사항:** `payment`·`purchase` 멱등키를 사용자별 복합 유니크로 정의했고, 명세의 타입 불일치였던 `credit_transaction.payment_id`를 BIGINT FK, `payment.paid_at`을 DATETIME(6)으로 정정했다.
+
+---
+
+## 2026-07-06 — Codex
+
 **무엇을 했나:** 이슈 4 공통 API 계층을 구현했다. 단건 `ApiResponse`, 페이지 `PageResponse`·`PageInfo`, 공통 `ErrorCode`·`ApplicationException`, Validation/JSON/HTTP 메서드/미디어 타입/예상 밖 오류를 처리하는 `GlobalExceptionHandler`, `X-Request-Id`를 응답 헤더·오류 본문·MDC로 전파하는 `RequestIdFilter`를 추가했다. `CommonWebContractTest`의 계약 테스트 10개가 통과했다.
 
 **막힌 부분:** 이슈 4 테스트는 통과했다. 전체 `gradlew test`는 기존 `AiverseApplicationTests.contextLoads()`가 DB 연결 정보 없이 Hibernate dialect를 결정하지 못해 1개 실패한다. 계획된 Testcontainers MySQL 공통 설정 전까지 존재하는 선행 상태다.

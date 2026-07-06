@@ -7,6 +7,7 @@
 
 ## 완료된 작업
 
+- 1단계 백엔드 공통 기반 (이슈 5) Flyway `V1`에 12개 테이블·PK·FK·유니크·CHECK·조회 인덱스, `V2`에 카테고리 8종·크레딧 상품 3종 seed 구현. Spring Boot 4 Flyway starter 보완 후 MySQL 8.0 실제 적용, 재실행 및 전체 테스트 11개 통과
 - 1단계 백엔드 공통 기반 (이슈 4) 단건 `{data}`·목록 `{data,page}` 응답 DTO, 공통 오류 코드·애플리케이션 예외·전역 예외 처리, `X-Request-Id` 응답 헤더·오류 본문·MDC 전파 구현 및 MockMvc 계약 테스트 10개 통과
 - `backend/.env`에 Docker Compose용 MySQL·MinIO 로컬 환경 변수 구성, 루트 `.gitignore`의 기존 `.env` 규칙으로 Git 제외 확인
 - 1단계 백엔드 공통 기반 (이슈 1) Gradle에 Security, Validation, JPA, Querydsl, Flyway, MySQL, JWT, S3 SDK, Testcontainers 의존성 구성
@@ -23,7 +24,7 @@
 
 ## 진행 중인 작업
 
-- 1단계 백엔드 공통 기반: 이슈 1·2·3·4 완료, 다음은 초기 Flyway 스키마·인덱스·카테고리·크레딧 상품 seed 작성 (PLAN.md 1단계 체크리스트 참조)
+- 1단계 백엔드 공통 기반: 이슈 1·2·3·4·5 완료, 다음은 Testcontainers MySQL 기반 통합 테스트 공통 설정 및 애플리케이션 기동 검증 (PLAN.md 1단계 체크리스트 참조)
 
 ## 다음으로 예정된 작업
 
