@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.aiverse.common.error.ApplicationException;
-import com.example.aiverse.common.error.AuthErrorCode;
 import com.example.aiverse.common.response.ApiResponse;
 import com.example.aiverse.dto.LoginRequest;
 import com.example.aiverse.dto.LoginResponse;
@@ -18,6 +16,7 @@ import com.example.aiverse.dto.MeResponse;
 import com.example.aiverse.dto.RegisterRequest;
 import com.example.aiverse.dto.RegisterResponse;
 import com.example.aiverse.service.AuthService;
+import com.example.aiverse.util.BearerTokenExtractor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -30,8 +29,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-
-    private static final String BEARER_PREFIX = "Bearer ";
 
     private final AuthService authService;
 
@@ -56,14 +53,7 @@ public class AuthController {
     public ApiResponse<MeResponse> me(
             @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ) {
-        String accessToken = extractBearerToken(authorizationHeader);
+        String accessToken = BearerTokenExtractor.extract(authorizationHeader);
         return ApiResponse.of(authService.getCurrentUser(accessToken));
-    }
-
-    private String extractBearerToken(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER_PREFIX)) {
-            throw new ApplicationException(AuthErrorCode.AUTHENTICATION_REQUIRED);
-        }
-        return authorizationHeader.substring(BEARER_PREFIX.length());
     }
 }

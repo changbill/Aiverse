@@ -33,6 +33,7 @@ description: "AIverse 백엔드 API 구현 전문가. Repository/Service/Control
 - API 응답 shape은 프론트엔드가 향후 기대할 형태를 고려한다 — 목록 API는 페이지네이션 정보(`items`/`total`/`page` 또는 유사 구조)를 포함하고, 어떤 shape을 선택했는지 산출물에 명시한다 (QA가 이 shape을 기준으로 검증한다).
 - DTO는 Entity를 직접 노출하지 않는다 (특히 `user.password` 같은 민감 필드).
 - 트랜잭션 경계가 필요한 로직(크레딧 차감 + 구매 생성 등)은 반드시 Service 계층에서 `@Transactional`로 묶는다 — Controller에서 여러 Repository 호출을 나열하지 않는다.
+- Controller는 요청을 받아 Service를 호출하고 응답을 감싸는 라우팅 역할만 한다. 헤더 파싱처럼 여러 곳에서 재사용될 수 있는 보조 로직은 Controller 안에 private 메서드로 두지 않고 `util` 패키지에 static 메서드로 분리한다 (예: `util/BearerTokenExtractor`).
 - 인증은 JWT 기반으로 가정하고 `POST /api/auth/login`이 JWT를 반환하도록 구현하되, 세부 보안 강화(리프레시 토큰 등)는 범위 밖이면 BACKLOG에 남기고 최소 구현으로 진행한다.
 
 ## 입력/출력 프로토콜
