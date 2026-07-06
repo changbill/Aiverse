@@ -80,6 +80,21 @@ class AuthServiceTest {
     }
 
     @Test
+    void 닉네임_앞뒤_공백은_제거되고_저장된다() {
+        RegisterRequest request = new RegisterRequest("user@example.com", "password1234", "  닉네임  ");
+        given(userRepository.existsByEmail("user@example.com")).willReturn(false);
+        given(userRepository.existsByNickname("닉네임")).willReturn(false);
+        given(passwordEncoder.encode("password1234")).willReturn("encoded-password");
+        User saved = withId(User.register("user@example.com", "encoded-password", "닉네임"), 1L);
+        given(userRepository.save(any(User.class))).willReturn(saved);
+
+        RegisterResponse response = authService.register(request);
+
+        assertThat(response.nickname()).isEqualTo("닉네임");
+        verify(userRepository).existsByNickname("닉네임");
+    }
+
+    @Test
     void 이메일이_중복되면_예외가_발생한다() {
         RegisterRequest request = new RegisterRequest("dup@example.com", "password1234", "닉네임");
         given(userRepository.existsByEmail("dup@example.com")).willReturn(true);
