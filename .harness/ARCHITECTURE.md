@@ -185,6 +185,13 @@ frontend/
 | Build     | Gradle 9.5.1 (Wrapper 포함) |
 | Utility   | Lombok                      |
 | Integration Test | Testcontainers MySQL   |
+| API 문서  | springdoc-openapi (Swagger UI) |
+
+### API 문서 (Swagger UI)
+
+- `springdoc-openapi-starter-webmvc-ui`가 `/swagger-ui.html`(UI)과 `/v3/api-docs`(OpenAPI JSON)를 자동 제공한다.
+- `config/OpenApiConfig`에서 API 제목과 JWT Bearer 보안 스키마(`bearer-jwt`)를 등록한다.
+- Controller를 추가할 때마다 클래스에 `@Tag`, 각 엔드포인트 메서드에 `@Operation`을 붙인다. Access token이 필요한 엔드포인트는 `@SecurityRequirement(name = "bearer-jwt")`를 추가해 Swagger UI의 Authorize 버튼으로 바로 호출해볼 수 있게 한다.
 
 ### 폴더 구조 (현재)
 
@@ -311,6 +318,7 @@ spring:
 | `STORAGE_ACCESS_KEY`         | S3 또는 MinIO access key |
 | `STORAGE_SECRET_KEY`         | S3 또는 MinIO secret key |
 | `STORAGE_BUCKET`             | Object Storage bucket 이름 |
+| `JWT_SECRET_KEY`             | Access token 서명 키 (HMAC-SHA256, Base64) |
 
 ### CORS
 

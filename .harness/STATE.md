@@ -7,6 +7,8 @@
 
 ## 완료된 작업
 
+- 백엔드에 `springdoc-openapi-starter-webmvc-ui`로 Swagger UI(`/swagger-ui.html`, `/v3/api-docs`) 도입, `config/OpenApiConfig`에 JWT Bearer 보안 스키마(`bearer-jwt`) 등록 — 이후 Controller마다 `@Tag`/`@Operation`/`@SecurityRequirement` 부여
+- 2단계 회원과 인증 (이슈 8) 회원가입·로그인·현재 사용자 조회(`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`)를 TDD로 구현. `JwtTokenProvider`(HMAC-SHA256, jjwt)로 Access token 발급/검증, `AuthErrorCode`(중복 이메일·닉네임, 인증 실패 등) 추가. `GET /api/auth/me`는 Security 필터가 아직 없어 컨트롤러가 `Authorization` 헤더를 직접 파싱하는 임시 구현 — 다음 이슈(Security 필터)에서 대체 예정. 테스트 25개(Service 10·Controller 11·JwtTokenProvider 4) 통과
 - 2단계 회원과 인증 (이슈 7) `User`·`RefreshToken` Entity를 Flyway V1 스키마에 맞춰 구현하고, Repository를 도메인 인터페이스/`jpa`/`impl` 3계층으로 TDD 구현 (`aiverse-backend-builder` 스킬: backend-architect → api-builder). `UserRepositoryTest`·`RefreshTokenRepositoryTest`가 Testcontainers MySQL로 각각 통과 확인
 - `ARCHITECTURE.md`의 API 명세에 엔드포인트별 요청 파라미터/본문과 응답 JSON 예시 추가 (Auth, Asset/Content, Category/Tag, Credit/Payment, Purchase/Library, File) — 기존에는 Dashboard만 예시가 있었음
 - 2단계 착수 전 컨벤션 확정: Repository를 도메인 인터페이스(`repository/*.java`)/JPA 실제 구현체(`repository/jpa/*.java`)/중간 구현체(`repository/impl/*.java`) 3계층으로 구성하고, 이후 모든 백엔드 구현은 TDD(테스트 우선)로 진행. 도구 중립 문서(`.harness/ARCHITECTURE.md`·`DECISIONS.md`)에 반영해 Codex/Cursor에도 적용되며, Claude Code 전용 `.claude/agents/{backend-architect,api-builder,qa}.md`·`.claude/skills/aiverse-backend-builder/SKILL.md`도 동기화
@@ -29,7 +31,7 @@
 
 ## 진행 중인 작업
 
-- 2단계 회원과 인증: 이슈 7 완료, 다음은 회원가입·로그인·현재 사용자 조회 구현 (PLAN.md 2단계 체크리스트 참조)
+- 2단계 회원과 인증: 이슈 7·8 완료, 다음은 Access token 발급과 Security 인증 필터 구현 (PLAN.md 2단계 체크리스트 참조)
 
 ## 다음으로 예정된 작업
 
