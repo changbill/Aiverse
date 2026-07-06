@@ -7,6 +7,8 @@
 
 | 날짜 | 결정 | 이유 |
 |------|------|------|
+| 2026-07-07 | 에이전트의 기본 테스트 실행은 단위 테스트만(`./gradlew test`) 한다. TDD로 통합 테스트를 작성·수정하는 작업 중에는 해당 통합 테스트를 반드시 실행하고, 통합 테스트 전체 스위트(`./gradlew integrationTest`)는 사용자가 명시적으로 요청한 경우에만 실행한다 | 통합 테스트는 느리고 환경 의존적이라 일반 검증에서는 제외하되, TDD red-green-refactor 사이클을 지키려면 작성 중인 통합 테스트는 실행해야 하고, 전체 스위트는 필요할 때만 돌리기로 함 |
+| 2026-07-06 | 통합 테스트의 MySQLContainer는 JUnit `@Container`가 아니라 Spring `@TestConfiguration`의 `@Bean @ServiceConnection`으로 관리하고, `IntegrationTestSupport`는 테스트별 `@Transactional` 롤백을 적용한다 | 테스트 클래스별 컨테이너 재시작과 캐시된 Hikari 풀의 수명 불일치로 전체 테스트가 커넥션 대기 상태에 빠지는 문제를 막고, 공유 DB의 테스트 데이터 누수를 방지하기 위해 |
 | 2026-07-06 | 연관관계 N+1은 명시적 JPQL/Querydsl fetch join으로 해결하고 `@EntityGraph`는 사용하지 않는다. 페이징 목록은 `XToOne`만 fetch join하며 목록·상세 DTO를 분리하고, 목록에 필요한 컬렉션은 별도 일괄 조회·projection·집계 쿼리로 처리한다 | 컬렉션 fetch join과 페이징을 함께 사용할 때 Hibernate의 메모리 페이징과 루트 엔티티 중복 행이 발생할 수 있으므로 DB 페이징의 정확성과 조회 성능을 함께 보장하기 위해 |
 | 2026-07-06 | 브랜치 전략을 "이슈 하나당 브랜치 하나"에서 "`PLAN.md` 단계 하나당 브랜치 하나, 체크리스트 항목 하나당 커밋 하나"로 바꾸고, 브랜치 번호는 Notion 이슈 트래커 연동 없이 이전 feature 번호에 이어 순차 부여한다. `.harness/*.md`에서 Notion 이슈 트래커 링크·조회 안내를 모두 제거한다 | 이슈 단위 브랜치가 지금 규모에는 과도하고, 문서에 특정 노션 페이지를 계속 참조하는 것도 유지 부담이라는 사용자 피드백 반영 |
 | 2026-07-06 | `.harness/*.md` 문서별 책임을 명확히 구분한다: `STATE.md`는 세션 로그가 아니라 단계 단위 완료 요약 스냅샷(누적 로그 금지), `HANDOFF.md`는 세션별 서술 로그, `DECISIONS.md`는 결정+이유(진행 상황 제외), `ARCHITECTURE.md`는 현재 기술 상태(이유 제외), `PLAN.md`는 남은 계획만, `BACKLOG.md`는 보류 항목만. 이 표를 `CLAUDE.md`/`AGENTS.md`/`.cursor/rules/harness.mdc`에 동일하게 반영 | `STATE.md`가 이슈별로 `HANDOFF.md`와 거의 같은 내용을 다시 서술하며 누적되는 중복이 발견됨. 문서 책임을 표로 못박아 재발을 막기 위해 |

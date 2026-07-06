@@ -33,6 +33,16 @@
 
 **트리거:** 이 프로젝트에서의 모든 작업 요청에 위 워크플로우를 적용하라. 단순 질문(코드 설명 등)은 하네스 절차 없이 바로 응답 가능.
 
+## 하네스: 테스트 실행 정책
+
+**목표:** Claude Code, Codex, Cursor 중 어떤 도구로 작업하든 검증 시 동일한 테스트 범위를 적용한다.
+
+- 구현·수정 후 **기본 검증**은 **단위 테스트만** 실행한다 (`cd backend && ./gradlew test` — 통합 테스트 제외).
+- **TDD로 통합 테스트를 작성·수정하는 작업** 중에는 해당 통합 테스트를 반드시 실행한다 — red → green → refactor 사이클을 지킨다. 해당 테스트 클래스만 실행해도 된다 (예: `./gradlew integrationTest --tests com.example.aiverse.repository.AssetRepositoryTest`).
+- **통합 테스트 전체 스위트**(`cd backend && ./gradlew integrationTest`)는 사용자가 명시적으로 요청한 경우에만 실행한다.
+- 단위 테스트: Service(Mockito), Controller(MockMvc·Mockito) 등 `IntegrationTestSupport`를 상속하지 않는 테스트.
+- 통합 테스트: `IntegrationTestSupport`를 상속하는 테스트, `AiverseApplicationTests`, `SecurityFilterChainTest` 등 Testcontainers MySQL이 필요한 테스트.
+
 ## 하네스: JPA 조회 최적화
 
 - 연관관계 조회에서 N+1 문제가 발생하면 명시적 JPQL/Querydsl fetch join으로 해결한다. `@EntityGraph`는 사용하지 않는다.

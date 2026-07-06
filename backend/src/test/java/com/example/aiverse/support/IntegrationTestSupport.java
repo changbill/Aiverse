@@ -1,20 +1,14 @@
 package com.example.aiverse.support;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import org.springframework.transaction.annotation.Transactional;
 
+@IntegrationTest
 @SpringBootTest
 @ActiveProfiles("test")
-@Testcontainers
+@Import(TestcontainersConfiguration.class)
+@Transactional
 public abstract class IntegrationTestSupport {
-
-    @Container
-    @ServiceConnection
-    static final MySQLContainer<?> MYSQL = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
-            .withReuse(true);
 }

@@ -77,5 +77,25 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('test') {
+	useJUnitPlatform {
+		excludeTags 'integration'
+	}
+}
+
+tasks.register('integrationTest', Test) {
+	group = 'verification'
+	description = 'Runs integration tests (Testcontainers MySQL).'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'integration'
+	}
+}
+
+tasks.register('allTests', Test) {
+	group = 'verification'
+	description = 'Runs all tests including integration.'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
 	useJUnitPlatform()
 }

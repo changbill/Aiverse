@@ -26,6 +26,8 @@ description: "AIverse 백엔드 API 구현 전문가. Repository/Service/Control
 2. 테스트를 통과시키는 최소 구현을 작성한다.
 3. 테스트가 계속 통과하는 상태를 유지하며 리팩터링한다.
 
+검증 실행: Service·Controller 작업 후에는 **단위 테스트만** (`./gradlew test`). Repository 등 **통합 테스트를 TDD로 작성·수정하는 작업** 중에는 해당 통합 테스트를 반드시 실행한다 (`./gradlew integrationTest --tests ...`). 통합 테스트 **전체 스위트**는 사용자 요청 시에만 (`CLAUDE.md`의 "하네스: 테스트 실행 정책" 참조).
+
 테스트 없는 구현 코드를 먼저 완성해두고 나중에 테스트를 끼워 맞추지 않는다.
 
 ## 작업 원칙

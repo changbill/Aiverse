@@ -7,6 +7,40 @@
 
 ---
 
+## 2026-07-07 — Cursor
+
+**무엇을 했나:** 테스트 실행 정책을 보완했다 — TDD로 통합 테스트를 작성·수정하는 작업 중에는 해당 통합 테스트를 반드시 실행하고, 일반 검증은 단위 테스트만, 전체 통합 스위트는 사용자 요청 시에만 실행하도록 `CLAUDE.md`/`AGENTS.md`/`.cursor/rules/harness.mdc` 등에 동기화했다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** 콘텐츠 상세 조회와 `view_count` 증가 구현.
+
+---
+
+## 2026-07-06 — Cursor
+
+**무엇을 했나:** 테스트 실행 정책을 확정했다 — 에이전트 기본 검증은 단위 테스트만(`./gradlew test`), 통합 테스트는 사용자 요청 시에만(`./gradlew integrationTest`). `CLAUDE.md`/`AGENTS.md`/`.cursor/rules/harness.mdc`에 "하네스: 테스트 실행 정책" 섹션을 추가하고 `DECISIONS.md`·`ARCHITECTURE.md`·`STATE.md`·`.claude/agents/*`에 동기화했다. Gradle `test` 태스크는 `@Tag("integration")` 통합 테스트를 제외하도록 변경했다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** 콘텐츠 상세 조회와 `view_count` 증가 구현.
+
+**참고사항:** TDD로 통합 테스트를 작성하는 것과 매 세션마다 실행하는 것은 분리한다.
+
+---
+
+## 2026-07-06 — Codex
+
+**무엇을 했나:** 전체 테스트 타임아웃의 원인이 JUnit 컨테이너 수명과 캐시된 Spring/Hikari 수명의 불일치임을 스레드 덤프로 확인했다. MySQLContainer를 `TestcontainersConfiguration`의 Spring Bean으로 전환하고 `IntegrationTestSupport`에 테스트별 트랜잭션 롤백을 적용했다.
+
+**막힌 부분:** 없음. `gradlew --no-daemon test` 전체 107개가 80초에 통과하고 프로세스가 정상 종료됐다.
+
+**다음에 할 일:** 콘텐츠 상세 조회와 `view_count` 증가 구현.
+
+**참고사항:** 첫 재실행에서는 공유 DB 데이터가 테스트 간 남아 태그 유니크 제약 2건이 실패했고, `@Transactional` 롤백으로 격리해 해결했다.
+
+---
+
 ## 2026-07-06 — Codex
 
 **무엇을 했나:** 3단계의 Querydsl 콘텐츠 목록을 구현했다. 구매 횟수 기반 `POPULAR` 정렬을 위해 최소 `Purchase` 읽기 엔티티를 선행하고, 검색(제목·설명·태그), 유형·카테고리·태그·가격·창작자 필터, `LATEST`·`POPULAR`·가격 정렬, 페이징을 `AssetRepositoryImpl`에 추가했다. 목록 쿼리는 `creator`·`category`의 `XToOne`만 fetch join한다. 목록 Service·Controller·DTO를 추가하고 공개 GET 경로로 등록했다.

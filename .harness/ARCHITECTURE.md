@@ -270,13 +270,22 @@ repository/
 
 구현 코드보다 테스트를 먼저 커밋하거나, 최소한 구현과 테스트를 같은 단위로 묶어 테스트 없는 구현이 남지 않도록 한다.
 
+### 테스트 실행 정책
+
+- 구현·수정 후 **기본 검증**은 단위 테스트만 실행한다 (`./gradlew test`).
+- **TDD로 통합 테스트를 작성·수정하는 작업** 중에는 해당 통합 테스트를 반드시 실행한다 (해당 클래스만 `./gradlew integrationTest --tests ...`로 실행 가능).
+- 통합 테스트 **전체 스위트**는 사용자가 명시적으로 요청한 경우에만 실행한다 (`./gradlew integrationTest`).
+- 자세한 내용은 `CLAUDE.md`의 "하네스: 테스트 실행 정책" 참조.
+
 ### Gradle Commands
 
 | Command             | Description                |
 | ------------------- | -------------------------- |
 | `./gradlew bootRun` | 개발 서버 실행 (port 8080) |
-| `./gradlew build`   | 컴파일 및 테스트           |
-| `./gradlew test`    | 테스트 실행                |
+| `./gradlew build`   | 컴파일 및 단위 테스트      |
+| `./gradlew test`    | 단위 테스트만 실행 (기본)  |
+| `./gradlew integrationTest` | 통합 테스트만 실행 (TDD 작성 중 해당 클래스, 또는 사용자 요청 시 전체) |
+| `./gradlew allTests` | 단위+통합 전체 테스트 실행 |
 | `./gradlew bootJar` | 실행 가능 JAR 생성         |
 
 ### 설정 (`application.yaml`)
