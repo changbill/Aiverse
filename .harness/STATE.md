@@ -7,6 +7,7 @@
 
 ## 완료된 작업
 
+- Controller 리팩터 2건: (1) `AuthController`의 Bearer 토큰 파싱을 `util/BearerTokenExtractor`(static, 단위 테스트 포함)로 분리해 Controller가 라우팅만 담당하도록 정리 (2) `register`가 쓰던 `ResponseEntity<ApiResponse<T>>`를 다른 엔드포인트와 동일하게 `ApiResponse<T>` 반환 + `@ResponseStatus(CREATED)`로 통일. 두 컨벤션 모두 `.claude/agents/api-builder.md` 작업 원칙과 `.harness/ARCHITECTURE.md`/`DECISIONS.md`에 반영
 - 백엔드에 `springdoc-openapi-starter-webmvc-ui`로 Swagger UI(`/swagger-ui.html`, `/v3/api-docs`) 도입, `config/OpenApiConfig`에 JWT Bearer 보안 스키마(`bearer-jwt`) 등록 — 이후 Controller마다 `@Tag`/`@Operation`/`@SecurityRequirement` 부여
 - 2단계 회원과 인증 (이슈 8) 회원가입·로그인·현재 사용자 조회(`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`)를 TDD로 구현. `JwtTokenProvider`(HMAC-SHA256, jjwt)로 Access token 발급/검증, `AuthErrorCode`(중복 이메일·닉네임, 인증 실패 등) 추가. `GET /api/auth/me`는 Security 필터가 아직 없어 컨트롤러가 `Authorization` 헤더를 직접 파싱하는 임시 구현 — 다음 이슈(Security 필터)에서 대체 예정. 테스트 25개(Service 10·Controller 11·JwtTokenProvider 4) 통과
 - 2단계 회원과 인증 (이슈 7) `User`·`RefreshToken` Entity를 Flyway V1 스키마에 맞춰 구현하고, Repository를 도메인 인터페이스/`jpa`/`impl` 3계층으로 TDD 구현 (`aiverse-backend-builder` 스킬: backend-architect → api-builder). `UserRepositoryTest`·`RefreshTokenRepositoryTest`가 Testcontainers MySQL로 각각 통과 확인
