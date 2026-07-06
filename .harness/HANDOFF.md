@@ -8,6 +8,18 @@
 
 ## 2026-07-06 — Claude Code
 
+**무엇을 했나:** 이슈 8 코드에 대한 사용자 피드백 2건을 반영해 컨벤션으로 굳혔다. (1) `AuthController.extractBearerToken`(private 메서드)을 `util/BearerTokenExtractor.extract(...)`(static)로 분리 — Controller는 라우팅만 담당한다는 원칙. (2) `register`가 `ResponseEntity<ApiResponse<RegisterResponse>>`를 반환하던 것을 `login`/`me`와 동일하게 `ApiResponse<T>` 반환 + `@ResponseStatus(HttpStatus.CREATED)`로 통일 — Controller 반환 타입은 항상 `ApiResponse<T>`/`PageResponse<T>`로 고정하고 `ResponseEntity`는 쓰지 않는다. 두 건 모두 `.harness/DECISIONS.md`·`ARCHITECTURE.md`(공통 응답 규격)와 `.claude/agents/api-builder.md` 작업 원칙에 반영해 다음 Controller 작업부터 자동으로 지켜지게 했다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** PLAN.md 2단계의 다음 항목 "Access token 발급과 Security 인증 필터 구현"을 진행한다.
+
+**참고사항:** 두 리팩터 모두 처음엔 실수로 master에 바로 코드를 수정했다가, 브랜치 전략을 뒤늦게 떠올리고 `feature/...` 브랜치를 만들어 옮긴 뒤 커밋·병합했다 — 다음에는 코드를 고치기 전에 먼저 브랜치 상태를 확인할 것.
+
+---
+
+## 2026-07-06 — Claude Code
+
 **무엇을 했나:** 사용자 요청으로 Swagger UI(springdoc-openapi) 컨벤션을 먼저 확정(`DECISIONS.md`, `ARCHITECTURE.md`에 반영, `config/OpenApiConfig`로 JWT Bearer 스키마 등록)한 뒤, 이슈 8 "회원가입·로그인·현재 사용자 조회 구현"을 `aiverse-backend-builder` 스킬(api-builder 에이전트)로 진행했다. `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`를 TDD로 구현했고 `AuthController`에 `@Tag`/`@Operation`/`@SecurityRequirement` Swagger 애노테이션을 붙였다. `JwtTokenProvider`(jjwt, HMAC-SHA256)로 Access token을 발급/검증하며, `app.jwt.secret-key`/`app.jwt.access-token-expiration-seconds`를 `application*.yaml`에 추가하고 `JWT_SECRET_KEY` 환경변수를 `ARCHITECTURE.md`에 문서화했다. 테스트 25개(AuthServiceTest 10, AuthControllerTest 11, JwtTokenProviderTest 4) 통과. `feature/8-회원가입-로그인-사용자조회-구현` 브랜치에서 작업 후 master에 병합.
 
 **막힌 부분:** 없음.

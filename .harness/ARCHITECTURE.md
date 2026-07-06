@@ -516,6 +516,7 @@ https://*.vercel.app            # Vercel 배포
 - `fieldErrors`가 없는 오류는 빈 배열을 반환한다.
 - 요청의 유효한 `X-Request-Id`는 그대로 사용하고, 없거나 유효하지 않으면 UUID를 생성한다. 동일한 값은 응답 `X-Request-Id` 헤더, 오류 본문 `requestId`, 로그 MDC에 사용한다.
 - 인증 실패는 `401`, 권한 부족은 `403`, 리소스 없음은 `404`, 중복·상태 충돌은 `409`를 사용한다.
+- Controller는 항상 `ApiResponse<T>` 또는 `PageResponse<T>`를 반환 타입으로 선언한다. `ResponseEntity`로 감싸지 않는다. `200`이 아닌 성공 상태 코드(예: 등록 `201 Created`)가 필요하면 메서드에 `@ResponseStatus(HttpStatus.CREATED)`를 붙인다.
 
 단건 성공 예시:
 
