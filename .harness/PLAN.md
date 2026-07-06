@@ -14,7 +14,6 @@
 
 #### 2단계: 회원과 인증
 
-- [ ] User·RefreshToken 엔티티와 Repository 구현
 - [ ] 회원가입·로그인·현재 사용자 조회 구현
 - [ ] Access token 발급과 Security 인증 필터 구현
 - [ ] Refresh token 쿠키·해시 저장·회전·로그아웃 구현

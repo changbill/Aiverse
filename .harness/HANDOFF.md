@@ -8,6 +8,18 @@
 
 ## 2026-07-06 — Claude Code
 
+**무엇을 했나:** 2단계 회원과 인증의 이슈 7 "User·RefreshToken 엔티티와 Repository 구현"을 `aiverse-backend-builder` 스킬로 진행했다. 이 세션에는 TeamCreate/TaskCreate 같은 팀 전용 툴이 없어서, Agent 툴로 `backend-architect`(엔티티 설계) → `api-builder`(Repository 3계층, TDD) 순서로 직접 조율했다. `User`/`RefreshToken` Entity를 Flyway V1 스키마에 맞춰 만들고, `UserRepository`/`RefreshTokenRepository`(도메인 인터페이스) + `repository/jpa/*JpaRepository` + `repository/impl/*RepositoryImpl` 3계층을 TDD로 구현, `UserRepositoryTest`/`RefreshTokenRepositoryTest`가 Testcontainers MySQL로 각각 통과했다. `feature/7-유저-리프레시토큰-엔티티-구현` 브랜치에서 작업 후 master에 병합.
+
+**막힌 부분:** 없음(코드 관점). 다만 이 로컬 PC에 다른 프로젝트(funchat, byeoldam 등) 컨테이너가 15개 넘게 떠 있고 Testcontainers `withReuse(true)`가 `~/.testcontainers.properties`(`testcontainers.reuse.enable=true`) 없이는 무시되어, 전체 `gradlew test`를 한꺼번에 돌리면 MySQL 커넥션이 간헐적으로 실패한다(개별 테스트 클래스는 각각 정상 통과). 사용자가 "개별 테스트 통과로 충분, 전체 스위트 재검증은 스킵"으로 확인해줬다.
+
+**다음에 할 일:** PLAN.md 2단계의 다음 항목 "회원가입·로그인·현재 사용자 조회 구현" — `UserRepository`/`RefreshTokenRepository`를 사용하는 Service/Controller/DTO를 `.harness/ARCHITECTURE.md`의 Auth API 명세(요청/응답 shape)에 맞춰 TDD로 구현한다.
+
+**참고사항:** 서브에이전트(backend-architect, api-builder)가 기본적으로 설명형 Javadoc 주석을 과하게 붙이는 경향이 있어 리더가 직접 정리했다 — 다음에 이 스킬을 쓸 때는 프롬프트에 "설명형/restating 주석 달지 말고 진짜 비직관적인 WHY만" 이라고 명시하는 게 낫다.
+
+---
+
+## 2026-07-06 — Claude Code
+
 **무엇을 했나:** `.harness/ARCHITECTURE.md`의 "API 명세" 섹션에 Dashboard를 제외한 모든 엔드포인트(Auth 6개, Asset/Content 5개, Category/Tag 2개, Credit/Payment 3개, Purchase/Library 3개, File 1개)의 요청 파라미터·본문과 응답 JSON 예시를 추가했다. 필드명은 기존 결정(camelCase, `view_count`→`viewCount`, `creatorId` 필터 등)과 Flyway `V1` 스키마 컬럼에 맞춰 설계했고, 원본 파일 정보(`originalObjectKey` 등)는 목록/상세 응답에 노출하지 않고 구매 후 `POST /api/downloads`로만 제공되도록 명시했다.
 
 **막힌 부분:** 없음.
