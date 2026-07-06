@@ -12,9 +12,9 @@ import com.example.aiverse.entity.Category;
 import com.example.aiverse.entity.LicenseType;
 import com.example.aiverse.entity.Tag;
 import com.example.aiverse.entity.User;
-import com.example.aiverse.support.IntegrationTestSupport;
+import com.example.aiverse.support.RepositoryIntegrationTestSupport;
 
-class AssetTagRepositoryTest extends IntegrationTestSupport {
+class AssetTagRepositoryTest extends RepositoryIntegrationTestSupport {
 
     @Autowired
     private AssetTagRepository assetTagRepository;

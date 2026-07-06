@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.aiverse.entity.RefreshToken;
 import com.example.aiverse.entity.User;
-import com.example.aiverse.support.IntegrationTestSupport;
+import com.example.aiverse.support.RepositoryIntegrationTestSupport;
 
-class RefreshTokenRepositoryTest extends IntegrationTestSupport {
+class RefreshTokenRepositoryTest extends RepositoryIntegrationTestSupport {
 
     @Autowired
     private UserRepository userRepository;

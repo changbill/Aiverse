@@ -12,10 +12,10 @@ import com.example.aiverse.entity.Category;
 import com.example.aiverse.entity.LicenseType;
 import com.example.aiverse.entity.Tag;
 import com.example.aiverse.entity.User;
-import com.example.aiverse.support.IntegrationTestSupport;
+import com.example.aiverse.support.RepositoryIntegrationTestSupport;
 import com.example.aiverse.util.TagNameNormalizer;
 
-class TagRepositoryTest extends IntegrationTestSupport {
+class TagRepositoryTest extends RepositoryIntegrationTestSupport {
 
     @Autowired
     private TagRepository tagRepository;

@@ -40,8 +40,22 @@
 - 구현·수정 후 **기본 검증**은 **단위 테스트만** 실행한다 (`cd backend && ./gradlew test` — 통합 테스트 제외).
 - **TDD로 통합 테스트를 작성·수정하는 작업** 중에는 해당 통합 테스트를 반드시 실행한다 — red → green → refactor 사이클을 지킨다. 해당 테스트 클래스만 실행해도 된다 (예: `./gradlew integrationTest --tests com.example.aiverse.repository.AssetRepositoryTest`).
 - **통합 테스트 전체 스위트**(`cd backend && ./gradlew integrationTest`)는 사용자가 명시적으로 요청한 경우에만 실행한다.
-- 단위 테스트: Service(Mockito), Controller(MockMvc·Mockito) 등 `IntegrationTestSupport`를 상속하지 않는 테스트.
-- 통합 테스트: `IntegrationTestSupport`를 상속하는 테스트, `AiverseApplicationTests`, `SecurityFilterChainTest` 등 Testcontainers MySQL이 필요한 테스트.
+- 단위 테스트: Service(Mockito), Controller(MockMvc·Mockito) 등 통합 테스트 베이스를 상속하지 않는 테스트.
+- Repository 통합 테스트: `RepositoryIntegrationTestSupport` (`@DataJpaTest` 슬라이스 + Testcontainers MySQL).
+- 전체 컨텍스트 통합 테스트: `IntegrationTestSupport` (`@SpringBootTest`) — `AiverseApplicationTests`, `SecurityFilterChainTest` 등.
+
+## 하네스: 통합 테스트 구조
+
+**목표:** MySQL 실제 동작 검증은 유지하면서 통합 테스트 기동 비용을 줄인다.
+
+| 베이스 클래스 | 어노테이션 | 용도 |
+| --- | --- | --- |
+| `RepositoryIntegrationTestSupport` | `@DataJpaTest` + Testcontainers | `*RepositoryTest` — JPA·Querydsl·Flyway만 기동 (Security·Web·OpenAPI 제외) |
+| `IntegrationTestSupport` | `@SpringBootTest` + Testcontainers | 앱 기동 검증, Security 필터 체인, MockMvc 전체 스택 |
+
+- Testcontainers MySQL은 `TestcontainersConfiguration`의 Spring `@Bean`으로 관리하고 `withReuse(true)` + `src/test/resources/testcontainers.properties`(`testcontainers.reuse.enable=true`)로 컨테이너를 재사용한다.
+- Repository 통합 테스트 작성 시 `RepositoryIntegrationTestSupport`를 상속한다. 새 `*RepositoryImpl` 추가 시 `RepositoryIntegrationTestConfiguration`에 등록한다.
+- 테스트별 데이터 격리는 `@Transactional` 롤백을 유지한다.
 
 ## 하네스: JPA 조회 최적화
 

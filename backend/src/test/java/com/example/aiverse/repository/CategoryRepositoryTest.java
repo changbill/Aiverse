@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.aiverse.entity.CategoryName;
-import com.example.aiverse.support.IntegrationTestSupport;
+import com.example.aiverse.support.RepositoryIntegrationTestSupport;
 
 import jakarta.persistence.EntityManager;
 
-class CategoryRepositoryTest extends IntegrationTestSupport {
+class CategoryRepositoryTest extends RepositoryIntegrationTestSupport {
 
     @Autowired
     private CategoryRepository categoryRepository;

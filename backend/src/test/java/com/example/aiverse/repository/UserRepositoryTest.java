@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import com.example.aiverse.entity.User;
-import com.example.aiverse.support.IntegrationTestSupport;
+import com.example.aiverse.support.RepositoryIntegrationTestSupport;
 
-class UserRepositoryTest extends IntegrationTestSupport {
+class UserRepositoryTest extends RepositoryIntegrationTestSupport {
 
     @Autowired
     private UserRepository userRepository;

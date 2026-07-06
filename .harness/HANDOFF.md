@@ -9,6 +9,16 @@
 
 ## 2026-07-07 — Cursor
 
+**무엇을 했나:** Repository 통합 테스트를 `@DataJpaTest` 슬라이스(`RepositoryIntegrationTestSupport`)로 분리하고 Testcontainers MySQL `withReuse(true)` + `testcontainers.properties` 재사용을 적용했다. `*RepositoryTest` 6개 클래스를 이전했고, `IntegrationTestSupport`는 앱 기동·Security 테스트만 유지한다. Repository 통합 테스트 전체 약 30초에 통과 확인. 하네스 문서·에이전트 지침에 동기화했다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** Claude Code가 진행 중인 콘텐츠 상세 조회·`view_count` 구현과 병행해 PLAN 3단계 나머지 체크리스트 마무리.
+
+---
+
+## 2026-07-07 — Cursor
+
 **무엇을 했나:** 테스트 실행 정책을 보완했다 — TDD로 통합 테스트를 작성·수정하는 작업 중에는 해당 통합 테스트를 반드시 실행하고, 일반 검증은 단위 테스트만, 전체 통합 스위트는 사용자 요청 시에만 실행하도록 `CLAUDE.md`/`AGENTS.md`/`.cursor/rules/harness.mdc` 등에 동기화했다.
 
 **막힌 부분:** 없음.

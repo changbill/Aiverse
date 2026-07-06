@@ -22,7 +22,7 @@ description: "AIverse 백엔드 API 구현 전문가. Repository/Service/Control
 
 `.harness/ARCHITECTURE.md`의 "개발 방법론 — TDD"를 따른다. Repository/Service/Controller 각 계층마다 다음 순서를 지킨다:
 
-1. 먼저 실패하는 테스트를 작성한다 — Repository는 `IntegrationTestSupport`(Testcontainers MySQL)를 상속한 통합 테스트, Service는 Mockito 기반 단위 테스트, Controller는 MockMvc 계약 테스트.
+1. 먼저 실패하는 테스트를 작성한다 — Repository는 `RepositoryIntegrationTestSupport`(Testcontainers MySQL, `@DataJpaTest` 슬라이스), Service는 Mockito 기반 단위 테스트, Controller는 MockMvc 계약 테스트.
 2. 테스트를 통과시키는 최소 구현을 작성한다.
 3. 테스트가 계속 통과하는 상태를 유지하며 리팩터링한다.
 

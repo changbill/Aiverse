@@ -9,9 +9,11 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 
-    @Bean
+    @Bean(destroyMethod = "stop")
     @ServiceConnection
+    @SuppressWarnings("resource")
     MySQLContainer<?> mysqlContainer() {
-        return new MySQLContainer<>(DockerImageName.parse("mysql:8.0"));
+        return new MySQLContainer<>(DockerImageName.parse("mysql:8.0"))
+                .withReuse(true);
     }
 }

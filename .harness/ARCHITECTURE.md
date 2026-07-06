@@ -219,7 +219,7 @@ backend/
         └── java/com/example/aiverse/
             ├── AiverseApplicationTests.java
             ├── common/
-            └── support/                    # IntegrationTestSupport 등 테스트 공통 설정
+            └── support/                    # RepositoryIntegrationTestSupport, IntegrationTestSupport 등
 ```
 
 ### 구현 예정 패키지 구조
@@ -264,7 +264,7 @@ repository/
 
 모든 백엔드 구현(Repository/Service/Controller)은 테스트 주도 개발(TDD)로 진행한다.
 
-1. 요구사항을 검증하는 테스트를 먼저 작성하고 실패를 확인한다 (Repository는 Testcontainers MySQL, Service는 단위 테스트, Controller는 MockMvc 계약 테스트).
+1. 요구사항을 검증하는 테스트를 먼저 작성하고 실패를 확인한다 (Repository는 `RepositoryIntegrationTestSupport` + Testcontainers MySQL, Service는 단위 테스트, Controller는 MockMvc 계약 테스트).
 2. 테스트를 통과시키는 최소 구현을 작성한다.
 3. 테스트가 계속 통과하는 상태를 유지하며 리팩터링한다.
 
@@ -276,6 +276,17 @@ repository/
 - **TDD로 통합 테스트를 작성·수정하는 작업** 중에는 해당 통합 테스트를 반드시 실행한다 (해당 클래스만 `./gradlew integrationTest --tests ...`로 실행 가능).
 - 통합 테스트 **전체 스위트**는 사용자가 명시적으로 요청한 경우에만 실행한다 (`./gradlew integrationTest`).
 - 자세한 내용은 `CLAUDE.md`의 "하네스: 테스트 실행 정책" 참조.
+
+### 통합 테스트 구조
+
+| 베이스 | 어노테이션 | 용도 |
+| --- | --- | --- |
+| `RepositoryIntegrationTestSupport` | `@DataJpaTest` + Testcontainers | `*RepositoryTest` — JPA·Querydsl·Flyway 슬라이스 |
+| `IntegrationTestSupport` | `@SpringBootTest` + Testcontainers | 앱 기동·Security 필터·MockMvc 전체 스택 |
+
+- Testcontainers MySQL: Spring `@Bean` + `withReuse(true)`, `src/test/resources/testcontainers.properties`에서 재사용 활성화.
+- 새 `*RepositoryImpl` 추가 시 `RepositoryIntegrationTestConfiguration`에 등록.
+- 테스트별 `@Transactional` 롤백으로 데이터 격리.
 
 ### Gradle Commands
 
@@ -319,7 +330,7 @@ spring:
 - 모든 프로필에서 JPA `ddl-auto=validate`를 사용해 Entity와 실제 스키마의 일치 여부만 검사한다.
 - `local`, `test`, `prod` 프로필을 분리한다.
 - 로컬 환경은 Docker Compose로 MySQL과 MinIO를 실행한다.
-- Repository·트랜잭션 통합 테스트는 H2 대신 Testcontainers MySQL을 사용하고 Flyway 마이그레이션을 적용한다.
+- Repository·트랜잭션 통합 테스트는 H2 대신 Testcontainers MySQL을 사용하고 Flyway 마이그레이션을 적용한다. Repository 테스트는 `@DataJpaTest` 슬라이스(`RepositoryIntegrationTestSupport`)로, 전체 스택 검증은 `@SpringBootTest`(`IntegrationTestSupport`)로 분리한다.
 - DB 비밀번호와 Object Storage 접근 키는 설정 파일에 저장하지 않고 환경 변수로 주입한다.
 - PK, FK, 유니크 제약과 목록·소유권·거래 이력 조회에 필요한 인덱스는 Flyway 마이그레이션에 명시한다.
 

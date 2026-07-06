@@ -17,7 +17,7 @@
 
 - Repository는 도메인 인터페이스 + `jpa`(Spring Data JPA) + `impl`(어댑터) 3계층. Service는 도메인 인터페이스에만 의존.
 - 모든 백엔드 구현(Repository/Service/Controller)은 TDD(실패하는 테스트 우선 → 최소 구현 → 리팩터링).
-- 테스트 실행: 기본은 단위 테스트만(`./gradlew test`). TDD로 통합 테스트 작성·수정 시 해당 테스트는 실행. 전체 통합 스위트는 사용자 요청 시(`./gradlew integrationTest`).
+- 테스트 실행: 기본은 단위 테스트만(`./gradlew test`). TDD로 통합 테스트 작성·수정 시 해당 테스트만 실행. Repository는 `@DataJpaTest` 슬라이스, 전체 스택은 `@SpringBootTest`. Testcontainers MySQL 재사용.
 - Controller는 `ApiResponse<T>`/`PageResponse<T>`만 반환(`ResponseEntity` 금지, 비-200 상태는 `@ResponseStatus`), 라우팅만 담당하고 보조 로직은 `util`로 분리.
 - 연관관계 N+1은 명시적 JPQL/Querydsl fetch join으로 해결(`@EntityGraph` 금지). 페이징 목록은 `XToOne`만 fetch join하고 목록·상세 DTO를 분리.
 - Swagger UI(springdoc-openapi 3.0.3+) 제공 — Controller마다 `@Tag`/`@Operation`/(인증 필요 시) `@SecurityRequirement`.
