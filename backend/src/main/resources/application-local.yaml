@@ -14,3 +14,5 @@ app:
     access-key: ${STORAGE_ACCESS_KEY:minioadmin}
     secret-key: ${STORAGE_SECRET_KEY:minioadmin123}
     bucket: ${STORAGE_BUCKET:aiverse-local}
+  jwt:
+    secret-key: ${JWT_SECRET_KEY:local-only-dev-secret-key-change-me-please-0123456789}
