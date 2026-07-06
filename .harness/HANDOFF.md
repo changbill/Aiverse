@@ -8,6 +8,18 @@
 
 ## 2026-07-06 — Claude Code
 
+**무엇을 했나:** 이슈 10 "Refresh token 쿠키·해시 저장·회전·로그아웃 구현"을 서브에이전트 없이 직접 TDD로 구현했다. `security/RefreshTokenGenerator`(SecureRandom 32바이트 원문 + SHA-256 해시), `util/RefreshTokenCookieSupport`(HttpOnly·Secure·SameSite=None·Path=/api/auth)를 새로 만들고, `AuthService.login`이 Access token과 함께 Refresh token을 발급하도록 확장했다(`LoginResult` 레코드로 컨트롤러에 원문 토큰 전달, DB에는 해시만 저장). `POST /api/auth/reissue`(기존 토큰 폐기 후 새 토큰 발급 = 회전)와 `POST /api/auth/logout`(해당 세션만 폐기, 204)을 추가하고 `SecurityConfig`에서 이 두 경로를 `permitAll`로 등록했다(Access token이 아니라 Refresh token 쿠키로 자체 인증하는 경로라서). `SecurityFilterChainTest`에 로그인→쿠키 확인→재발급→회전된 토큰 재사용 시 차단→로그아웃 흐름을 실제 필터 체인으로 검증하는 테스트를 추가했다.
+
+**막힌 부분:** 중간에 Lombok `@RequiredArgsConstructor`가 `@Value` 애노테이션을 생성자 파라미터로 복사하지 못해 `AuthController`에서 `No qualifying bean of type 'long'` 오류가 났다 — `@RequiredArgsConstructor` 대신 명시적 생성자로 바꿔 해결했다(이슈 8의 `AuthService`에서도 이미 같은 이유로 명시적 생성자를 썼었다).
+
+**다음에 할 일:** PLAN.md 2단계의 마지막 항목 "입력 검증, 중복 이메일·닉네임, 비활성 계정, 인증 오류 테스트"를 진행한다. 다만 이 시나리오 대부분(이메일/비밀번호/닉네임 검증, 중복 이메일·닉네임 409, 비활성 계정 로그인 거부, 각종 401)은 이슈 8·9·10에서 이미 테스트로 커버돼 있으니, 새로 작성하기보다 먼저 `AuthServiceTest`/`AuthControllerTest`/`SecurityFilterChainTest`를 훑어 빠진 케이스만 채우는 커버리지 점검으로 접근하는 게 낫다. 그다음은 3단계 "카테고리·태그·콘텐츠 탐색"이다.
+
+**참고사항:** `Value`(Lombok 자동 생성자에서 `@Value` 필드 애노테이션이 파라미터로 복사되지 않는 문제)는 이 프로젝트에서 두 번째로 겪은 패턴이니, `@Value`가 필요한 필드가 있는 클래스는 처음부터 `@RequiredArgsConstructor` 대신 명시적 생성자를 쓰는 게 낫다.
+
+---
+
+## 2026-07-06 — Claude Code
+
 **무엇을 했나:** 이슈 9 "Access token 발급과 Security 인증 필터 구현"을 진행했다(이번부터 서브에이전트 없이 직접 구현 — 아래 참고). `JwtAuthenticationFilter`가 유효한 토큰이면 `SecurityContext`에 인증을 설정하고, 유효하지 않은 토큰은 `RestAuthenticationEntryPoint`를 직접 호출해 401(`INVALID_TOKEN`)로 즉시 응답하며, 헤더가 아예 없는 경우는 Security 인가 단계가 자연스럽게 401(`AUTHENTICATION_REQUIRED`)로 처리하도록 설계했다. `SecurityConfig`(`SecurityBeansConfig`에서 이름 변경)에 `SecurityFilterChain`을 구성해 `register`/`login`/Swagger 경로만 `permitAll`, 나머지는 인증 필요로 설정했다. `AuthController.me`/`AuthService.getCurrentUser`를 `@AuthenticationPrincipal Long userId` 기반으로 단순화했다. `RequestIdFilter`에 `@Order(HIGHEST_PRECEDENCE)`를 추가해 Security 필터보다 먼저 실행되도록 고쳤다(안 그러면 Security 단계의 401 응답에 requestId가 안 붙는 문제가 있었다). 실제 필터 체인 동작을 검증하는 `SecurityFilterChainTest`(`@AutoConfigureMockMvc` + 실제 컨텍스트)를 추가했다.
 
 **막힌 부분:** 진행 중 `springdoc-openapi-starter-webmvc-ui:2.8.5`가 Spring Data 4.1과 호환되지 않아(`TypeInformation` 클래스 패키지 이동) 전체 컨텍스트 기동이 실패하는 문제를 만났다 — `3.0.3`으로 올려서 해결했다. 지금은 막힌 것 없음.

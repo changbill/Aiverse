@@ -1,5 +1,6 @@
 package com.example.aiverse.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -37,6 +38,9 @@ import com.example.aiverse.dto.RegisterResponse;
 import com.example.aiverse.entity.UserRole;
 import com.example.aiverse.entity.UserStatus;
 import com.example.aiverse.service.AuthService;
+import com.example.aiverse.util.RefreshTokenCookieSupport;
+
+import jakarta.servlet.http.Cookie;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
@@ -51,7 +55,7 @@ class AuthControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService, 1_209_600L))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
@@ -165,14 +169,14 @@ class AuthControllerTest {
     }
 
     @Test
-    void 로그인에_성공하면_토큰과_사용자_정보를_반환한다() throws Exception {
+    void 로그인에_성공하면_토큰과_사용자_정보를_반환하고_refresh_토큰_쿠키를_설정한다() throws Exception {
         LoginResponse response = new LoginResponse(
                 "eyJhbGciOiJIUzI1NiIs...",
                 new LoginResponse.UserSummary(1L, "user@example.com", "홍길동", UserRole.USER, 0)
         );
-        given(authService.login(any())).willReturn(response);
+        given(authService.login(any())).willReturn(new AuthService.LoginResult(response, "raw-refresh-token"));
 
-        mockMvc.perform(post("/api/auth/login")
+        var result = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -186,7 +190,12 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.user.email").value("user@example.com"))
                 .andExpect(jsonPath("$.data.user.nickname").value("홍길동"))
                 .andExpect(jsonPath("$.data.user.role").value("USER"))
-                .andExpect(jsonPath("$.data.user.creditBalance").value(0));
+                .andExpect(jsonPath("$.data.user.creditBalance").value(0))
+                .andReturn();
+
+        String setCookie = result.getResponse().getHeader("Set-Cookie");
+        assertThat(setCookie).contains(RefreshTokenCookieSupport.COOKIE_NAME + "=raw-refresh-token");
+        assertThat(setCookie).contains("HttpOnly");
     }
 
     @Test
@@ -205,6 +214,42 @@ class AuthControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("AUTHENTICATION_FAILED"))
                 .andExpect(jsonPath("$.message").value("이메일 또는 비밀번호가 일치하지 않습니다."));
+    }
+
+    @Test
+    void 재발급에_성공하면_새_access_토큰과_refresh_토큰_쿠키를_반환한다() throws Exception {
+        given(authService.reissue("old-raw-token"))
+                .willReturn(new AuthService.ReissueResult("new-access-token", "new-raw-token"));
+
+        var result = mockMvc.perform(post("/api/auth/reissue")
+                        .cookie(new Cookie(RefreshTokenCookieSupport.COOKIE_NAME, "old-raw-token")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
+                .andReturn();
+
+        String setCookie = result.getResponse().getHeader("Set-Cookie");
+        assertThat(setCookie).contains(RefreshTokenCookieSupport.COOKIE_NAME + "=new-raw-token");
+    }
+
+    @Test
+    void refresh_토큰_쿠키_없이_재발급하면_401을_반환한다() throws Exception {
+        willThrow(new ApplicationException(AuthErrorCode.AUTHENTICATION_REQUIRED))
+                .given(authService).reissue(null);
+
+        mockMvc.perform(post("/api/auth/reissue"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+    }
+
+    @Test
+    void 로그아웃하면_204와_함께_refresh_토큰_쿠키를_제거한다() throws Exception {
+        var result = mockMvc.perform(post("/api/auth/logout")
+                        .cookie(new Cookie(RefreshTokenCookieSupport.COOKIE_NAME, "raw-token")))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        String setCookie = result.getResponse().getHeader("Set-Cookie");
+        assertThat(setCookie).contains("Max-Age=0");
     }
 
     @Test

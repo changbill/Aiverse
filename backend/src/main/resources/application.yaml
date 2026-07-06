@@ -21,3 +21,4 @@ server:
 app:
   jwt:
     access-token-expiration-seconds: 900
+    refresh-token-expiration-seconds: 1209600
