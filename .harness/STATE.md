@@ -7,6 +7,7 @@
 
 ## 완료된 작업
 
+- 2단계 회원과 인증 (이슈 7) `User`·`RefreshToken` Entity를 Flyway V1 스키마에 맞춰 구현하고, Repository를 도메인 인터페이스/`jpa`/`impl` 3계층으로 TDD 구현 (`aiverse-backend-builder` 스킬: backend-architect → api-builder). `UserRepositoryTest`·`RefreshTokenRepositoryTest`가 Testcontainers MySQL로 각각 통과 확인
 - `ARCHITECTURE.md`의 API 명세에 엔드포인트별 요청 파라미터/본문과 응답 JSON 예시 추가 (Auth, Asset/Content, Category/Tag, Credit/Payment, Purchase/Library, File) — 기존에는 Dashboard만 예시가 있었음
 - 2단계 착수 전 컨벤션 확정: Repository를 도메인 인터페이스(`repository/*.java`)/JPA 실제 구현체(`repository/jpa/*.java`)/중간 구현체(`repository/impl/*.java`) 3계층으로 구성하고, 이후 모든 백엔드 구현은 TDD(테스트 우선)로 진행. 도구 중립 문서(`.harness/ARCHITECTURE.md`·`DECISIONS.md`)에 반영해 Codex/Cursor에도 적용되며, Claude Code 전용 `.claude/agents/{backend-architect,api-builder,qa}.md`·`.claude/skills/aiverse-backend-builder/SKILL.md`도 동기화
 - `ARCHITECTURE.md`의 테이블별 컬럼 표와 참고 DDL을 제거하고 Flyway V1·V2를 DB 스키마·기준 데이터의 단일 진실 소스로 연결
@@ -28,8 +29,8 @@
 
 ## 진행 중인 작업
 
-_(없음 — 1단계 백엔드 공통 기반 이슈 1~6 전체 완료, 2단계 회원과 인증 착수 대기)_
+- 2단계 회원과 인증: 이슈 7 완료, 다음은 회원가입·로그인·현재 사용자 조회 구현 (PLAN.md 2단계 체크리스트 참조)
 
 ## 다음으로 예정된 작업
 
-_(PLAN.md 참조 — 2단계 회원과 인증부터 → ... 9단계 전체 검증과 문서화 순)_
+_(PLAN.md 참조 — 2단계 나머지 → 3단계 카테고리·태그·콘텐츠 탐색 → ... 9단계 전체 검증과 문서화 순)_
