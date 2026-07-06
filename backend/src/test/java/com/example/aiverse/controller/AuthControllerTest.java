@@ -2,7 +2,6 @@ package com.example.aiverse.controller;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,13 +10,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -49,8 +54,22 @@ class AuthControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .setValidator(validator)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .addFilters(new RequestIdFilter())
                 .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticateAs(Long userId) {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        userId, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
     }
 
     @Test
@@ -194,10 +213,10 @@ class AuthControllerTest {
                 1L, "user@example.com", "홍길동", UserRole.USER, UserStatus.ACTIVE,
                 null, null, 500, LocalDateTime.parse("2026-07-06T00:00:00")
         );
-        given(authService.getCurrentUser("valid-token")).willReturn(response);
+        given(authService.getCurrentUser(1L)).willReturn(response);
+        authenticateAs(1L);
 
-        mockMvc.perform(get("/api/auth/me")
-                        .header("Authorization", "Bearer valid-token"))
+        mockMvc.perform(get("/api/auth/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.email").value("user@example.com"))
@@ -207,31 +226,5 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.profileUrl").value(nullValue()))
                 .andExpect(jsonPath("$.data.introduction").value(nullValue()))
                 .andExpect(jsonPath("$.data.creditBalance").value(500));
-    }
-
-    @Test
-    void authorization_헤더가_없으면_401을_반환한다() throws Exception {
-        mockMvc.perform(get("/api/auth/me"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
-    }
-
-    @Test
-    void bearer_접두어가_없으면_401을_반환한다() throws Exception {
-        mockMvc.perform(get("/api/auth/me")
-                        .header("Authorization", "valid-token"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
-    }
-
-    @Test
-    void 유효하지_않은_토큰이면_401을_반환한다() throws Exception {
-        willThrow(new ApplicationException(AuthErrorCode.INVALID_TOKEN))
-                .given(authService).getCurrentUser(eq("invalid-token"));
-
-        mockMvc.perform(get("/api/auth/me")
-                        .header("Authorization", "Bearer invalid-token"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("INVALID_TOKEN"));
     }
 }
