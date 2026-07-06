@@ -1,10 +1,10 @@
 package com.example.aiverse;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class AiverseApplicationTests {
+import com.example.aiverse.support.IntegrationTestSupport;
+
+class AiverseApplicationTests extends IntegrationTestSupport {
 
 	@Test
 	void contextLoads() {

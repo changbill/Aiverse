@@ -6,6 +6,18 @@
 
 ---
 
+## 2026-07-06 — Claude Code
+
+**무엇을 했나:** 이슈 6 "Testcontainers MySQL 기반 통합 테스트 공통 설정 및 애플리케이션 기동 검증"을 구현했다. `src/test/java/com/example/aiverse/support/IntegrationTestSupport.java`에 `@Testcontainers`+`MySQLContainer`(`withReuse(true)`)+`@ServiceConnection`+`@ActiveProfiles("test")` 공통 베이스를 추가하고, `AiverseApplicationTests`가 이를 상속하도록 변경했다. `build.gradle`에 `spring-boot-testcontainers` 의존성을 추가했다. `./gradlew test`를 실제로 실행해 컨텍스트가 정상 기동하고(`contextLoads`), Flyway V1·V2가 컨테이너 MySQL에 실제로 적용되는 것(`--info` 로그로 "Successfully applied 2 migrations ... now at version v2" 확인)을 검증했다. 전체 테스트 11개 통과로 1단계 백엔드 공통 기반(이슈 1~6)이 모두 완료됐다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** `.harness/PLAN.md`의 2단계 "회원과 인증"부터 진행한다 — User·RefreshToken 엔티티와 Repository 구현이 첫 항목이다.
+
+**참고사항:** 브랜치 `feature/6-테스트컨테이너-공통설정-기동검증`에서 작업. PLAN.md에서 1단계 섹션 전체(제목 포함)를 제거했다 — 완료된 계획은 STATE.md에 반영 후 제거한다는 하네스 규칙에 따름.
+
+---
+
 ## 2026-07-06 — Codex
 
 **무엇을 했나:** 이슈 5 초기 Flyway 구성을 구현했다. `V1__create_initial_schema.sql`에 12개 도메인 테이블과 PK·FK·유니크·CHECK·조회 인덱스를, `V2__seed_reference_data.sql`에 카테고리 8종과 크레딧 상품 3종을 작성했다. Spring Boot 4에서 Flyway 자동 구성이 빠진 것을 확인해 `spring-boot-starter-flyway`로 의존성을 보완했다. MySQL 8.0에 V1·V2를 실제 적용해 12개 테이블, seed, 핵심 제약을 조회했고 이미 적용된 DB에서 전체 테스트 11개가 다시 통과했다.

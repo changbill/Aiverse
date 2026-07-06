@@ -6,15 +6,22 @@
 
 ## 현재 계획
 
+### 아키텍처 DB 스키마 중복 제거 — (제안)
+
+**배경:** 실제 스키마가 Flyway 마이그레이션으로 관리되기 시작했으므로 `ARCHITECTURE.md`의 컬럼 표와 참고 DDL을 함께 유지하면 내용이 어긋날 위험이 있다.
+**범위:** `ARCHITECTURE.md`의 `DB 스키마` 상세 섹션을 제거하고 Flyway 파일을 스키마의 단일 진실 소스로 안내한다. 도메인 개요, 관계가 필요한 업무 정책, seed 정책과 API 계약은 유지한다.
+**단계:**
+- [ ] `ARCHITECTURE.md`의 테이블별 컬럼 표와 `<details>` 참고 DDL 블록 제거
+- [ ] 제거된 `DB 스키마` 섹션을 Flyway `V1__create_initial_schema.sql`·`V2__seed_reference_data.sql` 링크와 변경 원칙을 담은 짧은 안내로 교체
+- [ ] 목차와 문서 내부 참조를 점검해 끊어진 링크나 중복 설명 정리
+- [ ] 중요한 문서 관리 결정을 `DECISIONS.md`에 기록하고 완료 상태를 `STATE.md`·`HANDOFF.md`에 반영
+**영향받는 영역:** `.harness`
+
 ### AIverse MVP 구현 로드맵 — (진행중)
 
 **배경:** 합의된 아키텍처와 API 계약을 실제 코드로 옮기기 위해 공통 기반부터 거래 기능과 프론트엔드 전환까지 의존 순서대로 구현한다.
 **범위:** Spring Boot REST API, MySQL·MinIO 로컬 환경, 통합 테스트, VibeX SDK 제거 및 React 연동을 포함한다. 외부 실결제, 미디어 변환, 관리자 API, 이메일 인증은 포함하지 않는다.
 **단계:**
-
-#### 1단계: 백엔드 공통 기반
-
-- [ ] Testcontainers MySQL 기반 통합 테스트 공통 설정 및 애플리케이션 기동 검증
 
 #### 2단계: 회원과 인증
 
