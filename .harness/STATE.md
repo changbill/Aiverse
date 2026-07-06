@@ -7,6 +7,7 @@
 
 ## 완료된 작업
 
+- `ARCHITECTURE.md`의 API 명세에 엔드포인트별 요청 파라미터/본문과 응답 JSON 예시 추가 (Auth, Asset/Content, Category/Tag, Credit/Payment, Purchase/Library, File) — 기존에는 Dashboard만 예시가 있었음
 - 2단계 착수 전 컨벤션 확정: Repository를 도메인 인터페이스(`repository/*.java`)/JPA 실제 구현체(`repository/jpa/*.java`)/중간 구현체(`repository/impl/*.java`) 3계층으로 구성하고, 이후 모든 백엔드 구현은 TDD(테스트 우선)로 진행. 도구 중립 문서(`.harness/ARCHITECTURE.md`·`DECISIONS.md`)에 반영해 Codex/Cursor에도 적용되며, Claude Code 전용 `.claude/agents/{backend-architect,api-builder,qa}.md`·`.claude/skills/aiverse-backend-builder/SKILL.md`도 동기화
 - `ARCHITECTURE.md`의 테이블별 컬럼 표와 참고 DDL을 제거하고 Flyway V1·V2를 DB 스키마·기준 데이터의 단일 진실 소스로 연결
 - 1단계 백엔드 공통 기반 (이슈 6) `IntegrationTestSupport` 공통 베이스(`@Testcontainers` + `MySQLContainer` + `@ServiceConnection` + `@ActiveProfiles("test")`)를 추가하고 `AiverseApplicationTests`가 이를 상속하도록 변경. `spring-boot-testcontainers` 의존성 보완. 실제 실행으로 Flyway V1·V2가 컨테이너 MySQL에 적용되고 애플리케이션 컨텍스트가 정상 기동함을 확인, 전체 테스트 11개 통과 — 1단계 백엔드 공통 기반 전체 완료

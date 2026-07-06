@@ -8,6 +8,18 @@
 
 ## 2026-07-06 — Claude Code
 
+**무엇을 했나:** `.harness/ARCHITECTURE.md`의 "API 명세" 섹션에 Dashboard를 제외한 모든 엔드포인트(Auth 6개, Asset/Content 5개, Category/Tag 2개, Credit/Payment 3개, Purchase/Library 3개, File 1개)의 요청 파라미터·본문과 응답 JSON 예시를 추가했다. 필드명은 기존 결정(camelCase, `view_count`→`viewCount`, `creatorId` 필터 등)과 Flyway `V1` 스키마 컬럼에 맞춰 설계했고, 원본 파일 정보(`originalObjectKey` 등)는 목록/상세 응답에 노출하지 않고 구매 후 `POST /api/downloads`로만 제공되도록 명시했다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** `.harness/PLAN.md`의 2단계 "회원과 인증"을 Repository 3계층 + TDD 컨벤션과 이번에 추가한 Auth API 명세(요청/응답 shape)에 맞춰 진행한다.
+
+**참고사항:** 이번 추가는 아직 구현되지 않은 API의 설계 문서이며 실제 DTO는 아니다 — 2단계 이후 구현 시 이 shape을 기준으로 삼되, 세부 필드가 구현 중 조정되면 이 섹션을 함께 갱신한다.
+
+---
+
+## 2026-07-06 — Claude Code
+
 **무엇을 했나:** 2단계(회원과 인증) 착수 전, 사용자가 요청한 Repository 계층 구조와 TDD 개발 방법론을 문서화했다. Repository는 도메인 인터페이스(`repository/{Entity}Repository.java`) + Spring Data JPA 실제 구현체(`repository/jpa/{Entity}JpaRepository.java`) + 이를 감싸는 중간 구현체(`repository/impl/{Entity}RepositoryImpl.java`)의 3계층으로 구성하고, Service는 도메인 인터페이스에만 의존하도록 정했다. 이후 모든 백엔드 구현(Repository/Service/Controller)은 TDD(실패하는 테스트 우선 → 최소 구현 → 리팩터링)로 진행하기로 했다. 도구 중립(Codex/Cursor 포함) 문서인 `.harness/ARCHITECTURE.md`("Repository 계층 구조", "개발 방법론 — TDD" 절 신설, 폴더 구조도 최신화)와 `.harness/DECISIONS.md`에 반영했고, Claude Code 전용 `.claude/agents/{backend-architect,api-builder,qa}.md`·`.claude/skills/aiverse-backend-builder/SKILL.md`도 동일 컨벤션으로 동기화했다.
 
 **막힌 부분:** 없음.

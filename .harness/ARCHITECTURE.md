@@ -556,6 +556,101 @@ https://*.vercel.app            # Vercel 배포
 | GET    | `/api/auth/me`       | Access token  | 현재 사용자 정보                         |
 | PUT    | `/api/auth/me`       | Access token  | 사용자 정보 수정                         |
 
+**`POST /api/auth/register` 요청**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password1234",
+  "nickname": "홍길동"
+}
+```
+
+응답 (`201 Created`):
+
+```json
+{
+  "data": {
+    "id": 1,
+    "email": "user@example.com",
+    "nickname": "홍길동",
+    "role": "USER",
+    "creditBalance": 0,
+    "createdAt": "2026-07-06T00:00:00.000000"
+  }
+}
+```
+
+**`POST /api/auth/login` 요청**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "password1234"
+}
+```
+
+응답: Access token은 본문, Refresh token은 `Set-Cookie`(`HttpOnly`, `Secure`) 헤더로 전달한다.
+
+```json
+{
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+    "user": {
+      "id": 1,
+      "email": "user@example.com",
+      "nickname": "홍길동",
+      "role": "USER",
+      "creditBalance": 0
+    }
+  }
+}
+```
+
+**`POST /api/auth/reissue` 요청**: 요청 본문 없음 — Refresh token 쿠키만 사용한다.
+
+응답: 새 Access token을 본문으로, 회전된 Refresh token을 `Set-Cookie`로 전달한다.
+
+```json
+{
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIs..."
+  }
+}
+```
+
+**`POST /api/auth/logout`**: 요청 본문 없음. 응답은 `204 No Content`이며 Refresh token 쿠키를 만료시켜 제거한다.
+
+**`GET /api/auth/me` 응답**
+
+```json
+{
+  "data": {
+    "id": 1,
+    "email": "user@example.com",
+    "nickname": "홍길동",
+    "role": "USER",
+    "status": "ACTIVE",
+    "profileUrl": null,
+    "introduction": null,
+    "creditBalance": 500,
+    "createdAt": "2026-07-06T00:00:00.000000"
+  }
+}
+```
+
+**`PUT /api/auth/me` 요청** (전달한 필드만 갱신, `email`·`password`·`role`·`creditBalance`는 이 API로 변경 불가)
+
+```json
+{
+  "nickname": "새닉네임",
+  "profileUrl": "https://cdn.example.com/profile.jpg",
+  "introduction": "AI 창작자입니다."
+}
+```
+
+응답: `GET /api/auth/me`와 동일한 shape.
+
 ### Asset (Content)
 
 | Method | Path                 | 인증         | 설명                    |
@@ -585,12 +680,136 @@ https://*.vercel.app            # Vercel 배포
 
 **좋아요(likes) 미구현:** 프론트 UI에 표시 필드는 있으나 "좋아요 누르기" 상호작용이 없어 `asset`에 `like_count` 컬럼을 추가하지 않는다. 프론트의 좋아요 표시는 추후 정리 대상 (`.harness/BACKLOG.md` 참조).
 
+**`GET /api/contents` 응답** — 목록 항목은 원본 파일 정보(`originalObjectKey` 등)를 노출하지 않는다. 구매 전 사용자에게는 미리보기만 제공한다.
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "노을 지는 도시",
+      "description": "사이버펑크 스타일 도시 야경",
+      "assetType": "IMAGE",
+      "categoryId": 4,
+      "previewUrl": "https://cdn.example.com/preview/asset-1.jpg",
+      "priceCredit": 120,
+      "aiTool": "Midjourney",
+      "licenseType": "COMMERCIAL",
+      "viewCount": 37,
+      "creatorId": 5,
+      "creatorNickname": "홍길동",
+      "tags": ["cyberpunk", "city", "sunset"],
+      "createdAt": "2026-07-06T00:00:00.000000"
+    }
+  ],
+  "page": {
+    "number": 0,
+    "size": 20,
+    "totalElements": 1,
+    "totalPages": 1,
+    "hasNext": false
+  }
+}
+```
+
+**`GET /api/contents/{id}` 응답** — 목록 항목과 동일한 필드에 `description` 전문을 포함한다.
+
+```json
+{
+  "data": {
+    "id": 1,
+    "title": "노을 지는 도시",
+    "description": "사이버펑크 스타일 도시 야경. 4K 해상도, 상업적 이용 가능.",
+    "assetType": "IMAGE",
+    "categoryId": 4,
+    "previewUrl": "https://cdn.example.com/preview/asset-1.jpg",
+    "priceCredit": 120,
+    "aiTool": "Midjourney",
+    "licenseType": "COMMERCIAL",
+    "viewCount": 38,
+    "creatorId": 5,
+    "creatorNickname": "홍길동",
+    "tags": ["cyberpunk", "city", "sunset"],
+    "createdAt": "2026-07-06T00:00:00.000000",
+    "updatedAt": null
+  }
+}
+```
+
+**`POST /api/contents` 요청** — `previewObjectKey`·`originalObjectKey`는 `POST /api/files/upload`로 먼저 발급받은 임시 객체 키다. 등록 시점에 서버가 `HEAD` 요청으로 재검증한다.
+
+```json
+{
+  "title": "노을 지는 도시",
+  "description": "사이버펑크 스타일 도시 야경",
+  "assetType": "IMAGE",
+  "categoryId": 4,
+  "previewObjectKey": "tmp/user-5/8f3a.../preview.jpg",
+  "originalObjectKey": "tmp/user-5/8f3a.../original.png",
+  "originalFilename": "sunset-city.png",
+  "contentType": "image/png",
+  "fileSize": 4200000,
+  "priceCredit": 120,
+  "aiTool": "Midjourney",
+  "licenseType": "COMMERCIAL",
+  "tags": ["cyberpunk", "city", "sunset"]
+}
+```
+
+응답 (`201 Created`): `GET /api/contents/{id}`와 동일한 shape.
+
+**`PUT /api/contents/{id}` 요청** — 전달한 필드만 갱신한다. `originalObjectKey`·`originalFilename`·`contentType`·`fileSize`·`licenseType`은 최초 판매 이후에는 요청에 포함되어도 거부(`409`)한다.
+
+```json
+{
+  "title": "노을 지는 도시 (수정)",
+  "description": "설명 보완",
+  "categoryId": 4,
+  "previewObjectKey": "tmp/user-5/9c1b.../preview.jpg",
+  "priceCredit": 150,
+  "tags": ["cyberpunk", "city", "night"]
+}
+```
+
+응답: `GET /api/contents/{id}`와 동일한 shape.
+
+**`DELETE /api/contents/{id}`**: 요청 본문 없음. 응답은 `204 No Content` (소프트 삭제 — `status=DELETED`, `deleted_at` 기록).
+
 ### Category / Tag
 
 | Method | Path              | 인증   | 설명          |
 | ------ | ----------------- | ------ | ------------- |
 | GET    | `/api/categories` | 불필요 | 카테고리 목록 |
 | GET    | `/api/tags`       | 불필요 | 태그 검색·사용량순 목록 (최대 50개) |
+
+**`GET /api/categories` 응답** — 비활성(`active=false`) 카테고리는 제외한다.
+
+```json
+{
+  "data": [
+    { "id": 1, "name": "NATURE", "slug": "nature", "displayOrder": 1 },
+    { "id": 2, "name": "PEOPLE", "slug": "people", "displayOrder": 2 }
+  ]
+}
+```
+
+**`GET /api/tags` 쿼리 파라미터**
+
+| 파라미터 | 설명 |
+| --- | --- |
+| `query` | 태그 이름 검색어 (부분 일치, 선택) |
+| `limit` | 반환 개수, 기본 20·최대 50 |
+
+응답: 사용량(`asset_tag` 연결 수) 내림차순 정렬.
+
+```json
+{
+  "data": [
+    { "id": 3, "name": "cyberpunk", "usageCount": 12 },
+    { "id": 7, "name": "city", "usageCount": 9 }
+  ]
+}
+```
 
 ### Credit / Payment
 
@@ -600,6 +819,63 @@ https://*.vercel.app            # Vercel 배포
 | POST   | `/api/payments`            | Access token | 결제 요청 (목업) |
 | GET    | `/api/credit-transactions` | Access token | 크레딧 거래 이력 |
 
+**`GET /api/credit-products` 응답** — `ACTIVE` 상품만 `display_order` 오름차순으로 반환한다.
+
+```json
+{
+  "data": [
+    { "id": 1, "code": "BASIC", "name": "Basic", "creditAmount": 500, "bonusCredit": 0, "price": 5000, "displayOrder": 1 },
+    { "id": 2, "code": "PLUS", "name": "Plus", "creditAmount": 1000, "bonusCredit": 100, "price": 10000, "displayOrder": 2 },
+    { "id": 3, "code": "PRO", "name": "Pro", "creditAmount": 3000, "bonusCredit": 500, "price": 30000, "displayOrder": 3 }
+  ]
+}
+```
+
+**`POST /api/payments` 요청** — `Idempotency-Key` 헤더 필수. 금액·크레딧은 서버가 `creditProductId`로 조회해 결정하며 클라이언트가 전달하지 않는다.
+
+헤더: `Idempotency-Key: 6e2f...`
+
+```json
+{
+  "creditProductId": 2
+}
+```
+
+응답 (`201 Created`):
+
+```json
+{
+  "data": {
+    "paymentId": 10,
+    "creditProductId": 2,
+    "amount": 10000,
+    "method": "MOCK",
+    "status": "SUCCESS",
+    "grantedCredit": 1100,
+    "creditBalance": 1100,
+    "paidAt": "2026-07-06T00:00:00.000000"
+  }
+}
+```
+
+**`GET /api/credit-transactions` 쿼리 파라미터**
+
+| 파라미터 | 설명 |
+| --- | --- |
+| `type` | `CHARGE`\|`PURCHASE`\|`SALE` (선택, 미지정 시 전체) |
+| `page`, `size` | 공통 페이지네이션 |
+
+응답:
+
+```json
+{
+  "data": [
+    { "id": 21, "type": "CHARGE", "amount": 1100, "balanceAfter": 1100, "reason": "credit_product:PLUS", "createdAt": "2026-07-06T00:00:00.000000" }
+  ],
+  "page": { "number": 0, "size": 20, "totalElements": 1, "totalPages": 1, "hasNext": false }
+}
+```
+
 ### Purchase / Library
 
 | Method | Path             | 인증         | 설명          |
@@ -607,6 +883,79 @@ https://*.vercel.app            # Vercel 배포
 | POST   | `/api/purchases` | Access token | 콘텐츠 구매   |
 | GET    | `/api/library`   | Access token | 구매 보관함   |
 | POST   | `/api/downloads` | Access token | 구매 확인, 다운로드 기록 및 원본 Presigned URL 발급 |
+
+**`POST /api/purchases` 요청** — `Idempotency-Key` 헤더 필수. 본인 콘텐츠 구매·중복 구매·잔액 부족은 모두 `409 Conflict`와 구분되는 오류 `code`로 거부한다.
+
+헤더: `Idempotency-Key: a91c...`
+
+```json
+{
+  "assetId": 1
+}
+```
+
+응답 (`201 Created`):
+
+```json
+{
+  "data": {
+    "purchaseId": 55,
+    "assetId": 1,
+    "purchasePriceCredit": 120,
+    "licenseType": "COMMERCIAL",
+    "creditBalance": 980,
+    "purchasedAt": "2026-07-06T00:00:00.000000"
+  }
+}
+```
+
+**`GET /api/library` 쿼리 파라미터**
+
+| 파라미터 | 설명 |
+| --- | --- |
+| `page`, `size` | 공통 페이지네이션 (기본 `purchased_at` 내림차순) |
+
+응답 — 삭제된 콘텐츠도 구매 당시 정보로 계속 노출한다.
+
+```json
+{
+  "data": [
+    {
+      "purchaseId": 55,
+      "asset": {
+        "id": 1,
+        "title": "노을 지는 도시",
+        "previewUrl": "https://cdn.example.com/preview/asset-1.jpg",
+        "assetType": "IMAGE",
+        "deleted": false
+      },
+      "purchasePriceCredit": 120,
+      "licenseType": "COMMERCIAL",
+      "purchasedAt": "2026-07-06T00:00:00.000000"
+    }
+  ],
+  "page": { "number": 0, "size": 20, "totalElements": 1, "totalPages": 1, "hasNext": false }
+}
+```
+
+**`POST /api/downloads` 요청** — 구매 여부를 확인한 뒤 다운로드 이력을 남기고 짧은 유효기간의 원본 Presigned URL을 발급한다.
+
+```json
+{
+  "assetId": 1
+}
+```
+
+응답:
+
+```json
+{
+  "data": {
+    "downloadUrl": "https://s3.amazonaws.com/aiverse/original/asset-1.png?X-Amz-Signature=...",
+    "expiresAt": "2026-07-06T00:05:00.000000"
+  }
+}
+```
 
 ### Dashboard
 
@@ -647,6 +996,38 @@ https://*.vercel.app            # Vercel 배포
 | Method | Path                | 인증         | 설명        |
 | ------ | ------------------- | ------------ | ----------- |
 | POST   | `/api/files/upload` | Access token | 업로드용 Presigned URL 발급 |
+
+**`POST /api/files/upload` 요청** — `purpose`에 따라 "파일 저장과 접근 정책"의 형식·크기 제한을 검증한 뒤 인증 사용자별 임시 경로에 업로드 URL을 발급한다.
+
+```json
+{
+  "purpose": "ORIGINAL",
+  "assetType": "IMAGE",
+  "fileName": "sunset-city.png",
+  "contentType": "image/png",
+  "fileSize": 4200000
+}
+```
+
+| 필드 | 설명 |
+| --- | --- |
+| `purpose` | `COVER`(미리보기) \| `ORIGINAL`(원본) |
+| `assetType` | `IMAGE`\|`VIDEO`\|`MUSIC` — 원본 크기 제한 판단에 사용, `purpose=COVER`면 무시 |
+| `fileName` | 원본 파일명 (확장자 포함) |
+| `contentType` | MIME type |
+| `fileSize` | byte 단위 크기 |
+
+응답 — 프론트엔드는 `uploadUrl`로 스토리지에 직접 `PUT` 업로드하고, 이후 `POST /api/contents`에 `objectKey`를 전달한다.
+
+```json
+{
+  "data": {
+    "objectKey": "tmp/user-5/8f3a1c2e/sunset-city.png",
+    "uploadUrl": "https://s3.amazonaws.com/aiverse/tmp/user-5/8f3a1c2e/sunset-city.png?X-Amz-Signature=...",
+    "expiresAt": "2026-07-06T00:10:00.000000"
+  }
+}
+```
 
 ---
 
