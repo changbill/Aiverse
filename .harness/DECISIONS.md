@@ -7,6 +7,7 @@
 
 | 날짜 | 결정 | 이유 |
 |------|------|------|
+| 2026-07-06 | 연관관계 N+1은 명시적 JPQL/Querydsl fetch join으로 해결하고 `@EntityGraph`는 사용하지 않는다. 페이징 목록은 `XToOne`만 fetch join하며 목록·상세 DTO를 분리하고, 목록에 필요한 컬렉션은 별도 일괄 조회·projection·집계 쿼리로 처리한다 | 컬렉션 fetch join과 페이징을 함께 사용할 때 Hibernate의 메모리 페이징과 루트 엔티티 중복 행이 발생할 수 있으므로 DB 페이징의 정확성과 조회 성능을 함께 보장하기 위해 |
 | 2026-07-06 | 브랜치 전략을 "이슈 하나당 브랜치 하나"에서 "`PLAN.md` 단계 하나당 브랜치 하나, 체크리스트 항목 하나당 커밋 하나"로 바꾸고, 브랜치 번호는 Notion 이슈 트래커 연동 없이 이전 feature 번호에 이어 순차 부여한다. `.harness/*.md`에서 Notion 이슈 트래커 링크·조회 안내를 모두 제거한다 | 이슈 단위 브랜치가 지금 규모에는 과도하고, 문서에 특정 노션 페이지를 계속 참조하는 것도 유지 부담이라는 사용자 피드백 반영 |
 | 2026-07-06 | `.harness/*.md` 문서별 책임을 명확히 구분한다: `STATE.md`는 세션 로그가 아니라 단계 단위 완료 요약 스냅샷(누적 로그 금지), `HANDOFF.md`는 세션별 서술 로그, `DECISIONS.md`는 결정+이유(진행 상황 제외), `ARCHITECTURE.md`는 현재 기술 상태(이유 제외), `PLAN.md`는 남은 계획만, `BACKLOG.md`는 보류 항목만. 이 표를 `CLAUDE.md`/`AGENTS.md`/`.cursor/rules/harness.mdc`에 동일하게 반영 | `STATE.md`가 이슈별로 `HANDOFF.md`와 거의 같은 내용을 다시 서술하며 누적되는 중복이 발견됨. 문서 책임을 표로 못박아 재발을 막기 위해 |
 | 2026-07-06 | `springdoc-openapi-starter-webmvc-ui`는 `2.x`가 아니라 `3.0.3` 이상을 사용한다 | `2.8.5`는 Spring Data 4.1에서 `TypeInformation`이 `org.springframework.data.util`→`org.springframework.data.core`로 옮겨진 것과 호환되지 않아 Querydsl 웹 지원 빈 생성 시 `NoClassDefFoundError`로 전체 컨텍스트 기동이 실패했다. `3.0.3`은 이 API 변경에 대응한 메이저 버전이라 정상 동작한다 |

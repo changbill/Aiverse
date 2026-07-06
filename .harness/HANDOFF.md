@@ -7,6 +7,18 @@
 
 ---
 
+## 2026-07-06 — Codex
+
+**무엇을 했나:** JPA 조회 최적화 규칙을 `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/harness.mdc`에 동일하게 추가하고 `ARCHITECTURE.md`·`DECISIONS.md`에 동기화했다. N+1은 명시적 JPQL/Querydsl fetch join으로 해결하고 `@EntityGraph`는 사용하지 않으며, 페이징 목록은 `XToOne`만 fetch join하고 목록·상세 DTO를 분리하도록 정했다. 기존 `AssetTagJpaRepository.findByAssetId`의 `@EntityGraph`도 `JOIN FETCH assetTag.tag` JPQL로 교체했다.
+
+**막힌 부분:** 없음. `AssetTagRepositoryTest` 통과.
+
+**다음에 할 일:** `.harness/PLAN.md` 3단계의 다음 항목인 Querydsl 기반 콘텐츠 검색·필터·동적 정렬·페이지네이션 구현을 이어서 진행한다.
+
+**참고사항:** 현재 브랜치는 `feature/12-카테고리-태그-콘텐츠탐색-구현`이며 단계 전체가 끝날 때까지 master에 병합하지 않는다.
+
+---
+
 ## 2026-07-06 — Claude Code
 
 **무엇을 했나:** 사용자 지적으로 `.harness/*.md` 문서 간 중복을 점검했다. 핵심 문제는 `STATE.md`가 세션 로그가 아님에도 이슈마다 `HANDOFF.md`와 거의 같은 서술을 계속 누적해온 것 — `STATE.md`를 단계 단위 요약 스냅샷(하네스 구성/1단계/2단계 각 한 단락 + 확립된 컨벤션 요약)으로 완전히 재작성하고, 이슈별 로그는 모두 제거했다(과거 기록은 `HANDOFF.md`에 이미 남아 있으므로 유실 없음). `CLAUDE.md`/`AGENTS.md`/`.cursor/rules/harness.mdc`에 "문서별 책임" 표를 추가해 이후에도 같은 중복이 재발하지 않도록 했고, `ARCHITECTURE.md`/`DECISIONS.md`/`PLAN.md`/`HANDOFF.md`/`BACKLOG.md` 각 파일 머리말에도 "이 문서에 담지 않는 것"을 한 줄씩 추가했다. 브랜치 전략도 변경했다: 이슈 하나당 브랜치 하나 → `PLAN.md` 단계 하나당 브랜치 하나 + 체크리스트 항목 하나당 커밋 하나. 브랜치 번호는 Notion 이슈 트래커 연동 없이 이전 feature 번호(11)에 이어 순차 부여(다음은 12)하기로 하고, 세 지침 파일과 `aiverse-backend-builder` 스킬(현재 미사용)에서 Notion 링크·조회 안내를 전부 제거했다.

@@ -253,6 +253,13 @@ repository/
 - 단순 CRUD·Querydsl 동적 쿼리가 필요한 조회는 `{Entity}RepositoryImpl`에서 `{Entity}JpaRepository`와 `JPAQueryFactory`를 조합해 구현한다.
 - 이 구조는 모든 모듈(Content/Credit/Purchase/Dashboard 등)의 Repository에 동일하게 적용한다.
 
+### JPA 조회 최적화
+
+- 연관관계 N+1은 명시적 JPQL/Querydsl fetch join으로 해결하며 `@EntityGraph`는 사용하지 않는다.
+- 페이징 목록 쿼리는 `ManyToOne`·`OneToOne` 등 `XToOne` 연관관계만 fetch join한다. `XToMany` 컬렉션 fetch join과 페이징을 함께 사용하지 않는다.
+- API 응답은 목록 DTO와 상세 DTO로 분리한다. 목록 DTO는 `XToOne` 연관관계만으로 구성하고, 컬렉션이 필요한 응답은 상세 DTO에서 제공한다.
+- 페이징 목록에 컬렉션 정보가 필요하면 별도 일괄 조회, DTO projection, 집계 쿼리 등 DB 페이징을 유지하는 방식을 사용한다.
+
 ### 개발 방법론 — TDD
 
 모든 백엔드 구현(Repository/Service/Controller)은 테스트 주도 개발(TDD)로 진행한다.

@@ -38,6 +38,14 @@ alwaysApply: true
 
 **트리거:** 이 프로젝트에서의 모든 작업 요청에 위 워크플로우를 적용하라. 단순 질문(코드 설명 등)은 하네스 절차 없이 바로 응답 가능.
 
+## 하네스: JPA 조회 최적화
+
+- 연관관계 조회에서 N+1 문제가 발생하면 명시적 JPQL/Querydsl fetch join으로 해결한다. `@EntityGraph`는 사용하지 않는다.
+- 페이징 조회에서는 `XToMany` 컬렉션 fetch join을 사용하지 않는다. DB 페이징이 아닌 메모리 페이징과 중복 행 문제가 발생할 수 있다.
+- 페이징 목록 쿼리는 `ManyToOne`·`OneToOne` 등 `XToOne` 연관관계만 fetch join한다.
+- API 응답 DTO는 목록용과 상세용으로 분리한다. 목록 DTO는 페이징 쿼리가 `XToOne` 연관관계만으로 완성되도록 설계하고, `XToMany` 컬렉션이 필요한 응답은 상세 조회 DTO에서 제공한다.
+- 목록에서 컬렉션 정보가 반드시 필요하면 컬렉션 fetch join 대신 별도 일괄 조회, DTO projection, 집계 쿼리 등 페이징을 보존하는 방식을 사용한다.
+
 ## 하네스: 브랜치 전략
 
 **목표:** Claude Code, Codex, Cursor 중 어떤 도구로 구현을 시작하든 동일한 브랜치 규칙을 따라 작업 이력을 일치시킨다.
