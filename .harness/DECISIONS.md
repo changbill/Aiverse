@@ -6,6 +6,7 @@
 
 | 날짜 | 결정 | 이유 |
 |------|------|------|
+| 2026-07-06 | Controller는 항상 `ApiResponse<T>`/`PageResponse<T>`를 반환 타입으로 선언하고 `ResponseEntity`로 감싸지 않는다. `200`이 아닌 상태 코드는 `@ResponseStatus`로 지정한다 | 일부는 `ApiResponse<T>`를, 일부는 `ResponseEntity<ApiResponse<T>>`를 반환해 형식이 갈라지고 있어, 응답 형식을 하나로 고정해 모든 Controller가 같은 패턴을 따르게 하기 위해 |
 | 2026-07-06 | `springdoc-openapi-starter-webmvc-ui`로 Swagger UI(`/swagger-ui.html`, `/v3/api-docs`)를 제공하고, 이후 만드는 모든 Controller에 `@Tag`/`@Operation`과 (Access token 필요 시) `@SecurityRequirement("bearer-jwt")`를 붙인다 | API 명세 문서(`.harness/ARCHITECTURE.md`)와는 별도로 실행 중인 서버에서 바로 요청을 시도해볼 수 있는 대화형 문서가 필요하기 때문에 |
 | 2026-07-06 | Repository는 도메인 인터페이스(`repository/{Entity}Repository.java`) + Spring Data JPA 실제 구현체(`repository/jpa/{Entity}JpaRepository.java`) + 이를 감싸는 중간 구현체(`repository/impl/{Entity}RepositoryImpl.java`)의 3계층으로 구성하고, 서비스는 도메인 인터페이스에만 의존한다. 2단계부터 모든 백엔드 구현(Repository/Service/Controller)은 TDD(실패하는 테스트 우선 작성 → 최소 구현 → 리팩터링)로 진행한다 | 서비스 계층이 Spring Data JPA 구체 타입에 직접 의존하지 않도록 분리해 향후 구현 교체와 테스트 대역 삽입을 쉽게 하고, 테스트를 구현보다 먼저 작성해 요구사항과 경계 조건을 코드 작성 전에 명확히 하기 위해 |
 | 2026-07-06 | DB 테이블·컬럼·제약·인덱스와 기준 데이터의 단일 진실 소스는 Flyway 마이그레이션으로 두고, `ARCHITECTURE.md`에는 상세 스키마를 중복 기재하지 않는다 | 이미 적용된 마이그레이션과 설명 문서를 함께 수정하면서 두 정의가 어긋나는 문제를 막고, 스키마 변경 이력을 실행 가능한 SQL 한 곳에서 관리하기 위해 |
