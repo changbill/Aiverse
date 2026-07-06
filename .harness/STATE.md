@@ -4,13 +4,14 @@
 > 세션별 서술(무엇을 했고 무엇이 막혔는지)은 `HANDOFF.md`에, 결정과 이유는 `DECISIONS.md`에 남긴다 — 여기에 다시 옮기지 않는다.
 > 단계가 끝나면 그 단계를 한 줄로 갱신한다. 이슈/커밋 단위로 로그를 쌓지 않는다.
 
-**마지막 갱신:** 2026-07-06
+**마지막 갱신:** 2026-07-07
 
 ## 완료된 단계
 
 - **하네스 구성**: 크로스 툴(Claude Code/Codex/Cursor) 작업 연속성 하네스(`.harness/`, `CLAUDE.md`, `AGENTS.md`, `.cursor/rules/harness.mdc`) 구성. 프론트엔드/백엔드 모노레포 분리, 서비스 기획과 명세를 `ARCHITECTURE.md`로 통합.
 - **1단계 백엔드 공통 기반**: Gradle 의존성(Security/JPA/Querydsl/Flyway/JWT/S3/Testcontainers), 프로필, Docker Compose, 공통 응답·오류 처리, Flyway V1·V2, Spring 관리 MySQLContainer와 테스트별 트랜잭션 롤백 기반 `IntegrationTestSupport`까지 전체 완료.
 - **2단계 회원과 인증**: `User`/`RefreshToken` Entity+Repository(3계층), 회원가입·로그인·현재 사용자 조회, Swagger UI(springdoc), Access token 발급과 `SecurityFilterChain`, Refresh token 쿠키·해시 저장·회전·로그아웃, 입력 검증·인증 오류 테스트까지 전체 완료.
+- **3단계 카테고리·태그·콘텐츠 탐색**: `Category`/`Tag`/`Asset`/`AssetTag` Entity+Repository(3계층), `GET /api/categories`·`GET /api/tags`, Querydsl 콘텐츠 검색·필터·정렬(`LATEST`/`POPULAR`/`PRICE_ASC`/`PRICE_DESC`)·페이지네이션, `GET /api/contents` 목록과 `GET /api/contents/{id}` 상세+`view_count` 증가, 비활성 카테고리 제외·태그 정규화·정렬 통합 테스트까지 전체 완료.
 
 ## 확립된 컨벤션 (요약 — 근거·배경은 `DECISIONS.md` 참조)
 
@@ -24,10 +25,6 @@
 - 소스 코드 변경 없는 순수 문서/설정 작업은 feature 브랜치 없이 master에 바로 커밋.
 - 브랜치 전략: `PLAN.md` 단계 하나당 브랜치 하나, 체크리스트 항목 하나당 커밋 하나 (자세한 내용은 `CLAUDE.md`의 "하네스: 브랜치 전략" 참조).
 
-## 진행 중인 단계
-
-- **3단계 카테고리·태그·콘텐츠 탐색** (`feature/12-...`): `Category`/`Tag`/`Asset`/`AssetTag` Entity+Repository, `GET /api/categories`·`GET /api/tags`, 최소 `Purchase` 읽기 모델과 Querydsl 콘텐츠 검색·필터·정렬·페이지네이션 및 `GET /api/contents` 목록 완료. 나머지 2개 체크리스트 항목 진행 예정 — 자세한 내용은 `PLAN.md` 참조.
-
 ## 다음 단계
 
-`PLAN.md` 3단계의 남은 항목 → 4단계 파일 업로드와 콘텐츠 관리 → ... 9단계 전체 검증과 문서화 순.
+4단계 파일 업로드와 콘텐츠 관리 → ... 9단계 전체 검증과 문서화 순 (자세한 내용은 `PLAN.md` 참조).

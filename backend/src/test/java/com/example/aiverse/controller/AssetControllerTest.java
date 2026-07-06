@@ -18,8 +18,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.example.aiverse.common.error.ApplicationException;
+import com.example.aiverse.common.error.AssetErrorCode;
+import com.example.aiverse.common.error.GlobalExceptionHandler;
 import com.example.aiverse.common.response.PageInfo;
 import com.example.aiverse.common.response.PageResponse;
+import com.example.aiverse.dto.AssetDetailResponse;
 import com.example.aiverse.dto.AssetListResponse;
 import com.example.aiverse.entity.AssetType;
 import com.example.aiverse.entity.LicenseType;
@@ -34,7 +38,9 @@ class AssetControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new AssetController(assetService)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new AssetController(assetService))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test
@@ -54,5 +60,29 @@ class AssetControllerTest {
                 .andExpect(jsonPath("$.data[0].creatorNickname").value("creator"))
                 .andExpect(jsonPath("$.data[0].tags").doesNotExist())
                 .andExpect(jsonPath("$.page.totalElements").value(1));
+    }
+
+    @Test
+    void 콘텐츠_상세를_반환한다() throws Exception {
+        given(assetService.getDetail(1L)).willReturn(new AssetDetailResponse(
+                1L, "제목", "설명", AssetType.IMAGE, 4L, "preview/key.jpg", 120,
+                "Midjourney", LicenseType.COMMERCIAL, 38L, 5L, "홍길동",
+                List.of("cyberpunk", "city"), LocalDateTime.now(), null
+        ));
+
+        mockMvc.perform(get("/api/contents/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.title").value("제목"))
+                .andExpect(jsonPath("$.data.tags.length()").value(2))
+                .andExpect(jsonPath("$.data.viewCount").value(38));
+    }
+
+    @Test
+    void 존재하지_않는_콘텐츠는_404를_반환한다() throws Exception {
+        given(assetService.getDetail(999L)).willThrow(new ApplicationException(AssetErrorCode.ASSET_NOT_FOUND));
+
+        mockMvc.perform(get("/api/contents/999"))
+                .andExpect(status().isNotFound());
     }
 }

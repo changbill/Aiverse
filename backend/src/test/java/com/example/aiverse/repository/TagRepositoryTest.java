@@ -13,6 +13,7 @@ import com.example.aiverse.entity.LicenseType;
 import com.example.aiverse.entity.Tag;
 import com.example.aiverse.entity.User;
 import com.example.aiverse.support.IntegrationTestSupport;
+import com.example.aiverse.util.TagNameNormalizer;
 
 class TagRepositoryTest extends IntegrationTestSupport {
 
@@ -104,6 +105,20 @@ class TagRepositoryTest extends IntegrationTestSupport {
         var result = tagRepository.searchOrderByUsage("limit-tag-", 3);
 
         assertThat(result).hasSize(3);
+    }
+
+    @Test
+    void 태그_이름은_공백_축소와_소문자_정규화로_저장된다() {
+        String normalized = TagNameNormalizer.normalize("  Cyber   PUNK  ");
+        tagRepository.save(Tag.of(normalized));
+
+        assertThat(tagRepository.findByName("cyber punk"))
+                .isPresent()
+                .get()
+                .extracting(Tag::getName)
+                .isEqualTo("cyber punk");
+        assertThat(tagRepository.findByName("cyber  punk")).isEmpty();
+        assertThat(TagNameNormalizer.normalize("Cyber Punk")).isEqualTo("cyber punk");
     }
 
     private Asset newAsset(User creator, Category category, String objectKeySuffix) {

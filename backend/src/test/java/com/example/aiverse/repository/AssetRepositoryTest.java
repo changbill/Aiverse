@@ -8,11 +8,16 @@ import org.springframework.data.domain.PageRequest;
 
 import com.example.aiverse.entity.Asset;
 import com.example.aiverse.entity.AssetStatus;
+import com.example.aiverse.entity.AssetTag;
 import com.example.aiverse.entity.AssetType;
 import com.example.aiverse.entity.Category;
 import com.example.aiverse.entity.LicenseType;
+import com.example.aiverse.entity.Tag;
 import com.example.aiverse.entity.User;
 import com.example.aiverse.support.IntegrationTestSupport;
+import com.example.aiverse.support.TestPurchaseSupport;
+
+import jakarta.persistence.EntityManager;
 
 class AssetRepositoryTest extends IntegrationTestSupport {
 
@@ -24,6 +29,15 @@ class AssetRepositoryTest extends IntegrationTestSupport {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private TagRepository tagRepository;
+
+    @Autowired
+    private AssetTagRepository assetTagRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     void 콘텐츠를_저장하고_ID로_조회할_수_있다() {
@@ -90,6 +104,87 @@ class AssetRepositoryTest extends IntegrationTestSupport {
                 .extracting(Asset::getTitle)
                 .containsExactly("저가 이미지");
         assertThat(result.getContent().getFirst().getCreator().getNickname()).isEqualTo("검색창작자");
+    }
+
+    @Test
+    void 태그_필터는_공백과_대소문자를_정규화해_조회한다() {
+        User creator = userRepository.save(User.register("tag-filter@example.com", "encoded-password", "태그필터"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        Asset asset = assetRepository.save(asset(creator, category, "태그 대상", AssetType.IMAGE, 100));
+        Tag tag = tagRepository.save(Tag.of("cyber punk"));
+        assetTagRepository.save(AssetTag.of(asset, tag));
+        assetRepository.save(asset(creator, category, "다른 콘텐츠", AssetType.IMAGE, 200));
+
+        var condition = new AssetSearchCondition(
+                null, null, null, "  CYBER   PUNK  ",
+                null, null, null, AssetSort.LATEST
+        );
+        var result = assetRepository.search(condition, PageRequest.of(0, 10));
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent()).extracting(Asset::getTitle).containsExactly("태그 대상");
+    }
+
+    @Test
+    void 최신순으로_콘텐츠를_정렬한다() {
+        User creator = userRepository.save(User.register("latest@example.com", "encoded-password", "최신순"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        Asset older = assetRepository.save(asset(creator, category, "이전 콘텐츠", AssetType.IMAGE, 100));
+        Asset newer = assetRepository.save(asset(creator, category, "최신 콘텐츠", AssetType.IMAGE, 100));
+
+        var condition = new AssetSearchCondition(
+                null, null, null, null,
+                null, null, creator.getId(), AssetSort.LATEST
+        );
+        var result = assetRepository.search(condition, PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).extracting(Asset::getTitle)
+                .containsExactly("최신 콘텐츠", "이전 콘텐츠");
+        assertThat(result.getContent().getFirst().getId()).isEqualTo(newer.getId());
+        assertThat(result.getContent().get(1).getId()).isEqualTo(older.getId());
+    }
+
+    @Test
+    void 가격_내림차순으로_콘텐츠를_정렬한다() {
+        User creator = userRepository.save(User.register("price-desc@example.com", "encoded-password", "가격내림"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        assetRepository.save(asset(creator, category, "저가", AssetType.IMAGE, 50));
+        assetRepository.save(asset(creator, category, "고가", AssetType.IMAGE, 300));
+        assetRepository.save(asset(creator, category, "중가", AssetType.IMAGE, 150));
+
+        var condition = new AssetSearchCondition(
+                null, null, null, null,
+                null, null, creator.getId(), AssetSort.PRICE_DESC
+        );
+        var result = assetRepository.search(condition, PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).extracting(Asset::getTitle)
+                .containsExactly("고가", "중가", "저가");
+    }
+
+    @Test
+    void 인기순으로_구매_횟수가_많은_콘텐츠를_우선_정렬한다() {
+        User creator = userRepository.save(User.register("popular-creator@example.com", "encoded-password", "인기창작자"));
+        User buyerA = userRepository.save(User.register("buyer-a@example.com", "encoded-password", "구매자A"));
+        User buyerB = userRepository.save(User.register("buyer-b@example.com", "encoded-password", "구매자B"));
+        User buyerC = userRepository.save(User.register("buyer-c@example.com", "encoded-password", "구매자C"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        Asset popular = assetRepository.save(asset(creator, category, "인기 콘텐츠", AssetType.IMAGE, 100));
+        Asset moderate = assetRepository.save(asset(creator, category, "보통 콘텐츠", AssetType.IMAGE, 100));
+        assetRepository.save(asset(creator, category, "비인기 콘텐츠", AssetType.IMAGE, 100));
+
+        TestPurchaseSupport.insertPurchase(entityManager, buyerA, popular, "popular-a");
+        TestPurchaseSupport.insertPurchase(entityManager, buyerB, popular, "popular-b");
+        TestPurchaseSupport.insertPurchase(entityManager, buyerC, moderate, "moderate-c");
+
+        var condition = new AssetSearchCondition(
+                null, null, null, null,
+                null, null, creator.getId(), AssetSort.POPULAR
+        );
+        var result = assetRepository.search(condition, PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).extracting(Asset::getTitle)
+                .containsExactly("인기 콘텐츠", "보통 콘텐츠", "비인기 콘텐츠");
     }
 
     private Asset asset(User creator, Category category, String title, AssetType type, int price) {

@@ -1,11 +1,14 @@
 package com.example.aiverse.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.aiverse.common.response.ApiResponse;
 import com.example.aiverse.common.response.PageResponse;
+import com.example.aiverse.dto.AssetDetailResponse;
 import com.example.aiverse.dto.AssetListResponse;
 import com.example.aiverse.entity.AssetType;
 import com.example.aiverse.repository.AssetSearchCondition;
@@ -43,5 +46,11 @@ public class AssetController {
                 page,
                 size
         );
+    }
+
+    @Operation(summary = "콘텐츠 상세 조회")
+    @GetMapping("/{id}")
+    public ApiResponse<AssetDetailResponse> getDetail(@PathVariable Long id) {
+        return ApiResponse.of(assetService.getDetail(id));
     }
 }

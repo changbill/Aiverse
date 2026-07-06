@@ -21,6 +21,7 @@ import com.example.aiverse.repository.AssetRepository;
 import com.example.aiverse.repository.AssetSearchCondition;
 import com.example.aiverse.repository.AssetSort;
 import com.example.aiverse.repository.jpa.AssetJpaRepository;
+import com.example.aiverse.util.TagNameNormalizer;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,11 @@ public class AssetRepositoryImpl implements AssetRepository {
     @Override
     public Optional<Asset> findById(Long id) {
         return assetJpaRepository.findById(id);
+    }
+
+    @Override
+    public Optional<Asset> findPublishedDetailById(Long id) {
+        return assetJpaRepository.findByIdAndStatus(id, AssetStatus.PUBLISHED);
     }
 
     @Override
@@ -83,7 +89,12 @@ public class AssetRepositoryImpl implements AssetRepository {
         }
         if (condition.type() != null) where.and(asset.assetType.eq(condition.type()));
         if (condition.categoryId() != null) where.and(asset.category.id.eq(condition.categoryId()));
-        if (condition.tag() != null && !condition.tag().isBlank()) where.and(tag.name.eq(condition.tag().trim().toLowerCase()));
+        if (condition.tag() != null && !condition.tag().isBlank()) {
+            String normalizedTag = TagNameNormalizer.normalize(condition.tag());
+            if (!normalizedTag.isEmpty()) {
+                where.and(tag.name.eq(normalizedTag));
+            }
+        }
         if (condition.minPrice() != null) where.and(asset.priceCredit.goe(condition.minPrice()));
         if (condition.maxPrice() != null) where.and(asset.priceCredit.loe(condition.maxPrice()));
         if (condition.creatorId() != null) where.and(asset.creator.id.eq(condition.creatorId()));

@@ -13,5 +13,7 @@ public interface AssetRepository {
 
     Optional<Asset> findById(Long id);
 
+    Optional<Asset> findPublishedDetailById(Long id);
+
     Page<Asset> search(AssetSearchCondition condition, Pageable pageable);
 }
