@@ -45,7 +45,7 @@ public class PaymentService {
             throw new ApplicationException(CreditErrorCode.PRODUCT_INACTIVE);
         }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdForUpdate(userId)
                 .orElseThrow(() -> new ApplicationException(AuthErrorCode.AUTHENTICATION_REQUIRED));
 
         Payment payment = paymentRepository.save(Payment.mockSuccess(user, product, idempotencyKey));

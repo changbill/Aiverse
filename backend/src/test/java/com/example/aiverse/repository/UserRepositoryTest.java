@@ -70,6 +70,17 @@ class UserRepositoryTest extends RepositoryIntegrationTestSupport {
     }
 
     @Test
+    void 비관적_쓰기_잠금으로_유저를_조회할_수_있다() {
+        User user = userRepository.save(User.register("lock@example.com", "encoded-password", "잠금유저"));
+
+        assertThat(userRepository.findByIdForUpdate(user.getId()))
+                .isPresent()
+                .get()
+                .extracting(User::getEmail)
+                .isEqualTo("lock@example.com");
+    }
+
+    @Test
     void 닉네임_중복_저장시_유니크_제약_위반_예외가_발생한다() {
         userRepository.save(User.register("nick-dup-a@example.com", "encoded-password", "dupnick"));
 

@@ -59,7 +59,7 @@ class PaymentServiceTest {
         CreditProduct product = product(2L, "PLUS", 1000, 100, 10000, CreditProductStatus.ACTIVE);
         given(paymentRepository.findByUserIdAndIdempotencyKey(5L, "idem-1")).willReturn(Optional.empty());
         given(creditProductRepository.findById(2L)).willReturn(Optional.of(product));
-        given(userRepository.findById(5L)).willReturn(Optional.of(user));
+        given(userRepository.findByIdForUpdate(5L)).willReturn(Optional.of(user));
         given(paymentRepository.save(any(Payment.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         PaymentResponse response = paymentService.charge(5L, new PaymentRequest(2L), "idem-1");
