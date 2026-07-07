@@ -3,8 +3,12 @@ package com.example.aiverse.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -142,5 +146,50 @@ class AssetControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.title").value("제목"));
+    }
+
+    @Test
+    void 콘텐츠_수정에_성공하면_수정된_정보를_반환한다() throws Exception {
+        given(assetService.update(eq(5L), eq(1L), any())).willReturn(new AssetDetailResponse(
+                1L, "수정된 제목", "설명", AssetType.IMAGE, 4L, "preview/key.jpg", 200,
+                "Midjourney", LicenseType.COMMERCIAL, 0L, 5L, "홍길동",
+                List.of("night"), LocalDateTime.now(), LocalDateTime.now()
+        ));
+        authenticateAs(5L);
+
+        mockMvc.perform(put("/api/contents/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "수정된 제목",
+                                  "priceCredit": 200,
+                                  "tags": ["night"]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.title").value("수정된 제목"))
+                .andExpect(jsonPath("$.data.priceCredit").value(200));
+    }
+
+    @Test
+    void 소유자가_아닌_수정_요청은_403을_반환한다() throws Exception {
+        willThrow(new ApplicationException(AssetErrorCode.FORBIDDEN))
+                .given(assetService).update(eq(5L), eq(1L), any());
+        authenticateAs(5L);
+
+        mockMvc.perform(put("/api/contents/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\": \"수정\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void 콘텐츠_삭제에_성공하면_204를_반환한다() throws Exception {
+        authenticateAs(5L);
+
+        mockMvc.perform(delete("/api/contents/1"))
+                .andExpect(status().isNoContent());
+
+        verify(assetService).delete(5L, 1L);
     }
 }

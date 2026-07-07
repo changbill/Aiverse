@@ -9,4 +9,6 @@ public interface AssetTagRepository {
     AssetTag save(AssetTag assetTag);
 
     List<AssetTag> findByAssetId(Long assetId);
+
+    void deleteByAssetId(Long assetId);
 }

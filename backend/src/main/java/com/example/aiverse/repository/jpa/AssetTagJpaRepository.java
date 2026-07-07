@@ -3,6 +3,7 @@ package com.example.aiverse.repository.jpa;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,4 +18,8 @@ public interface AssetTagJpaRepository extends JpaRepository<AssetTag, Long> {
             WHERE assetTag.asset.id = :assetId
             """)
     List<AssetTag> findByAssetId(@Param("assetId") Long assetId);
+
+    @Modifying
+    @Query("DELETE FROM AssetTag assetTag WHERE assetTag.asset.id = :assetId")
+    void deleteByAssetId(@Param("assetId") Long assetId);
 }

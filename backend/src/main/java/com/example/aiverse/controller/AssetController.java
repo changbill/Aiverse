@@ -2,9 +2,11 @@ package com.example.aiverse.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +18,7 @@ import com.example.aiverse.common.response.PageResponse;
 import com.example.aiverse.dto.AssetCreateRequest;
 import com.example.aiverse.dto.AssetDetailResponse;
 import com.example.aiverse.dto.AssetListResponse;
+import com.example.aiverse.dto.AssetUpdateRequest;
 import com.example.aiverse.entity.AssetType;
 import com.example.aiverse.repository.AssetSearchCondition;
 import com.example.aiverse.repository.AssetSort;
@@ -71,5 +74,24 @@ public class AssetController {
             @Valid @RequestBody AssetCreateRequest request
     ) {
         return ApiResponse.of(assetService.create(userId, request));
+    }
+
+    @Operation(summary = "콘텐츠 수정")
+    @SecurityRequirement(name = "bearer-jwt")
+    @PutMapping("/{id}")
+    public ApiResponse<AssetDetailResponse> update(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long id,
+            @Valid @RequestBody AssetUpdateRequest request
+    ) {
+        return ApiResponse.of(assetService.update(userId, id, request));
+    }
+
+    @Operation(summary = "콘텐츠 삭제")
+    @SecurityRequirement(name = "bearer-jwt")
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
+        assetService.delete(userId, id);
     }
 }

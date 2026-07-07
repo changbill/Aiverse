@@ -25,4 +25,9 @@ public class AssetTagRepositoryImpl implements AssetTagRepository {
     public List<AssetTag> findByAssetId(Long assetId) {
         return assetTagJpaRepository.findByAssetId(assetId);
     }
+
+    @Override
+    public void deleteByAssetId(Long assetId) {
+        assetTagJpaRepository.deleteByAssetId(assetId);
+    }
 }

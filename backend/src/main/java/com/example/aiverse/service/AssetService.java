@@ -14,6 +14,7 @@ import com.example.aiverse.common.response.PageResponse;
 import com.example.aiverse.dto.AssetCreateRequest;
 import com.example.aiverse.dto.AssetDetailResponse;
 import com.example.aiverse.dto.AssetListResponse;
+import com.example.aiverse.dto.AssetUpdateRequest;
 import com.example.aiverse.entity.Asset;
 import com.example.aiverse.entity.AssetTag;
 import com.example.aiverse.entity.Category;
@@ -23,6 +24,7 @@ import com.example.aiverse.repository.AssetRepository;
 import com.example.aiverse.repository.AssetSearchCondition;
 import com.example.aiverse.repository.AssetTagRepository;
 import com.example.aiverse.repository.CategoryRepository;
+import com.example.aiverse.repository.PurchaseRepository;
 import com.example.aiverse.repository.TagRepository;
 import com.example.aiverse.repository.UserRepository;
 import com.example.aiverse.storage.ObjectMetadata;
@@ -42,6 +44,7 @@ public class AssetService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final ObjectStorageClient objectStorageClient;
+    private final PurchaseRepository purchaseRepository;
 
     public PageResponse<AssetListResponse> search(AssetSearchCondition condition, int page, int size) {
         int boundedPage = Math.max(page, 0);
@@ -82,6 +85,63 @@ public class AssetService {
         attachTags(asset, request.tags());
 
         return AssetDetailResponse.from(asset, assetTagRepository.findByAssetId(asset.getId()));
+    }
+
+    @Transactional
+    public AssetDetailResponse update(Long userId, Long assetId, AssetUpdateRequest request) {
+        Asset asset = assetRepository.findPublishedDetailById(assetId)
+                .orElseThrow(() -> new ApplicationException(AssetErrorCode.ASSET_NOT_FOUND));
+        if (!asset.getCreator().getId().equals(userId)) {
+            throw new ApplicationException(AssetErrorCode.FORBIDDEN);
+        }
+
+        if (request.touchesRestrictedFields()) {
+            if (purchaseRepository.existsByAssetId(assetId)) {
+                throw new ApplicationException(AssetErrorCode.ALREADY_SOLD);
+            }
+            if (request.originalObjectKey() != null) {
+                String contentType = request.contentType() != null ? request.contentType() : asset.getContentType();
+                long fileSize = request.fileSize() != null ? request.fileSize() : asset.getFileSize();
+                verifyOriginalObject(userId, request.originalObjectKey(), contentType, fileSize);
+            }
+        }
+
+        Category category = null;
+        if (request.categoryId() != null) {
+            category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new ApplicationException(AssetErrorCode.CATEGORY_NOT_FOUND));
+        }
+        if (request.previewObjectKey() != null) {
+            verifyObjectExists(userId, request.previewObjectKey());
+        }
+
+        asset.updateBasicInfo(
+                request.title(), request.description(), category,
+                request.previewObjectKey(), request.priceCredit(), request.aiTool()
+        );
+        asset.updateOriginal(
+                request.originalObjectKey(), request.originalFilename(),
+                request.contentType(), request.fileSize(), request.licenseType()
+        );
+        assetRepository.save(asset);
+
+        if (request.tags() != null) {
+            assetTagRepository.deleteByAssetId(assetId);
+            attachTags(asset, request.tags());
+        }
+
+        return AssetDetailResponse.from(asset, assetTagRepository.findByAssetId(assetId));
+    }
+
+    @Transactional
+    public void delete(Long userId, Long assetId) {
+        Asset asset = assetRepository.findPublishedDetailById(assetId)
+                .orElseThrow(() -> new ApplicationException(AssetErrorCode.ASSET_NOT_FOUND));
+        if (!asset.getCreator().getId().equals(userId)) {
+            throw new ApplicationException(AssetErrorCode.FORBIDDEN);
+        }
+        asset.softDelete();
+        assetRepository.save(asset);
     }
 
     private void verifyOriginalObject(Long userId, String objectKey, String expectedContentType, long expectedSize) {

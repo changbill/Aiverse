@@ -141,4 +141,32 @@ public class Asset {
     public void increaseViewCount() {
         this.viewCount += 1;
     }
+
+    public void updateBasicInfo(
+            String title, String description, Category category,
+            String previewObjectKey, Integer priceCredit, String aiTool
+    ) {
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
+        if (category != null) this.category = category;
+        if (previewObjectKey != null) this.previewObjectKey = previewObjectKey;
+        if (priceCredit != null) this.priceCredit = priceCredit;
+        if (aiTool != null) this.aiTool = aiTool;
+    }
+
+    public void updateOriginal(
+            String originalObjectKey, String originalFilename, String contentType,
+            Long fileSize, LicenseType licenseType
+    ) {
+        if (originalObjectKey != null) this.originalObjectKey = originalObjectKey;
+        if (originalFilename != null) this.originalFilename = originalFilename;
+        if (contentType != null) this.contentType = contentType;
+        if (fileSize != null) this.fileSize = fileSize;
+        if (licenseType != null) this.licenseType = licenseType;
+    }
+
+    public void softDelete() {
+        this.status = AssetStatus.DELETED;
+        this.deletedAt = LocalDateTime.now();
+    }
 }

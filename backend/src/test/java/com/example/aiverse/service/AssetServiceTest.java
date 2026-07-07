@@ -20,7 +20,9 @@ import com.example.aiverse.common.error.AssetErrorCode;
 import com.example.aiverse.common.error.FileErrorCode;
 import com.example.aiverse.dto.AssetCreateRequest;
 import com.example.aiverse.dto.AssetDetailResponse;
+import com.example.aiverse.dto.AssetUpdateRequest;
 import com.example.aiverse.entity.Asset;
+import com.example.aiverse.entity.AssetStatus;
 import com.example.aiverse.entity.AssetType;
 import com.example.aiverse.entity.Category;
 import com.example.aiverse.entity.CategoryName;
@@ -30,6 +32,7 @@ import com.example.aiverse.entity.User;
 import com.example.aiverse.repository.AssetRepository;
 import com.example.aiverse.repository.AssetTagRepository;
 import com.example.aiverse.repository.CategoryRepository;
+import com.example.aiverse.repository.PurchaseRepository;
 import com.example.aiverse.repository.TagRepository;
 import com.example.aiverse.repository.UserRepository;
 import com.example.aiverse.storage.ObjectMetadata;
@@ -56,13 +59,30 @@ class AssetServiceTest {
     @Mock
     private ObjectStorageClient objectStorageClient;
 
+    @Mock
+    private PurchaseRepository purchaseRepository;
+
     private AssetService assetService;
 
     @BeforeEach
     void setUp() {
         assetService = new AssetService(
-                assetRepository, assetTagRepository, categoryRepository, userRepository, tagRepository, objectStorageClient
+                assetRepository, assetTagRepository, categoryRepository, userRepository,
+                tagRepository, objectStorageClient, purchaseRepository
         );
+    }
+
+    private Asset assetOwnedBy(Long ownerId, Long assetId) {
+        User creator = User.register("creator@example.com", "encoded-password", "창작자");
+        setField(creator, "id", ownerId);
+        Category category = category(1L, CategoryName.NATURE, "nature", 1);
+        Asset asset = Asset.register(
+                creator, "제목", "설명", AssetType.IMAGE, category,
+                "preview/key.jpg", "original/key.png", "file.png", "image/png",
+                1000L, 100, "Midjourney", LicenseType.COMMERCIAL
+        );
+        setField(asset, "id", assetId);
+        return asset;
     }
 
     @Test
@@ -176,6 +196,82 @@ class AssetServiceTest {
                 .isInstanceOf(ApplicationException.class)
                 .extracting(exception -> ((ApplicationException) exception).getErrorCode())
                 .isEqualTo(FileErrorCode.OBJECT_VERIFICATION_FAILED);
+    }
+
+    @Test
+    void 소유자가_기본_정보와_태그를_수정한다() {
+        Asset asset = assetOwnedBy(5L, 10L);
+        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+        given(assetTagRepository.findByAssetId(10L)).willReturn(List.of());
+        given(tagRepository.findByName("night")).willReturn(Optional.empty());
+        given(tagRepository.save(org.mockito.ArgumentMatchers.any(Tag.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        AssetUpdateRequest request = new AssetUpdateRequest(
+                "수정된 제목", null, null, null, 200, null,
+                null, null, null, null, null, List.of("night")
+        );
+
+        AssetDetailResponse result = assetService.update(5L, 10L, request);
+
+        assertThat(result.title()).isEqualTo("수정된 제목");
+        assertThat(asset.getPriceCredit()).isEqualTo(200);
+        verify(assetTagRepository).deleteByAssetId(10L);
+        verify(assetTagRepository).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void 소유자가_아니면_수정_시_예외를_던진다() {
+        Asset asset = assetOwnedBy(999L, 10L);
+        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+
+        AssetUpdateRequest request = new AssetUpdateRequest(
+                "수정", null, null, null, null, null, null, null, null, null, null, null
+        );
+
+        assertThatThrownBy(() -> assetService.update(5L, 10L, request))
+                .isInstanceOf(ApplicationException.class)
+                .extracting(exception -> ((ApplicationException) exception).getErrorCode())
+                .isEqualTo(AssetErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    void 판매된_콘텐츠의_원본을_수정하려하면_예외를_던진다() {
+        Asset asset = assetOwnedBy(5L, 10L);
+        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+        given(purchaseRepository.existsByAssetId(10L)).willReturn(true);
+
+        AssetUpdateRequest request = new AssetUpdateRequest(
+                null, null, null, null, null, null,
+                "tmp/user-5/uuid/new.png", null, null, null, null, null
+        );
+
+        assertThatThrownBy(() -> assetService.update(5L, 10L, request))
+                .isInstanceOf(ApplicationException.class)
+                .extracting(exception -> ((ApplicationException) exception).getErrorCode())
+                .isEqualTo(AssetErrorCode.ALREADY_SOLD);
+    }
+
+    @Test
+    void 소유자가_콘텐츠를_소프트_삭제한다() {
+        Asset asset = assetOwnedBy(5L, 10L);
+        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+
+        assetService.delete(5L, 10L);
+
+        assertThat(asset.getStatus()).isEqualTo(AssetStatus.DELETED);
+        assertThat(asset.getDeletedAt()).isNotNull();
+        verify(assetRepository).save(asset);
+    }
+
+    @Test
+    void 소유자가_아니면_삭제_시_예외를_던진다() {
+        Asset asset = assetOwnedBy(999L, 10L);
+        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+
+        assertThatThrownBy(() -> assetService.delete(5L, 10L))
+                .isInstanceOf(ApplicationException.class)
+                .extracting(exception -> ((ApplicationException) exception).getErrorCode())
+                .isEqualTo(AssetErrorCode.FORBIDDEN);
     }
 
     private Category category(Long id, CategoryName name, String slug, int displayOrder) {

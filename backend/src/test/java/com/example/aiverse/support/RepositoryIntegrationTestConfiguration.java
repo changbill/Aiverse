@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Import;
 import com.example.aiverse.repository.impl.AssetRepositoryImpl;
 import com.example.aiverse.repository.impl.AssetTagRepositoryImpl;
 import com.example.aiverse.repository.impl.CategoryRepositoryImpl;
+import com.example.aiverse.repository.impl.PurchaseRepositoryImpl;
 import com.example.aiverse.repository.impl.RefreshTokenRepositoryImpl;
 import com.example.aiverse.repository.impl.TagRepositoryImpl;
 import com.example.aiverse.repository.impl.UserRepositoryImpl;
@@ -20,6 +21,7 @@ import com.example.aiverse.repository.impl.UserRepositoryImpl;
         AssetRepositoryImpl.class,
         AssetTagRepositoryImpl.class,
         RefreshTokenRepositoryImpl.class,
+        PurchaseRepositoryImpl.class,
 })
 @ImportAutoConfiguration(FlywayAutoConfiguration.class)
 public class RepositoryIntegrationTestConfiguration {
