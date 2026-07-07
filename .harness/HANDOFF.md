@@ -9,6 +9,16 @@
 
 ## 2026-07-07 — Claude Code
 
+**무엇을 했나:** `feature/15-구매-보관함-다운로드-구현` 브랜치에서 6단계 전체를 완료했다. `Purchase`를 쓰기 가능하게 확장하고 `CreatorSettlement`/`Download` Entity+Repository를 추가했다. `POST /api/purchases`가 구매자·창작자 행을 사용자 ID 오름차순으로 잠근 뒤 잔액 차감·80% 창작자 정산·`Purchase`/`CreatorSettlement` 생성을 한 트랜잭션(`READ_COMMITTED`)으로 처리하고, 본인 콘텐츠·중복 구매·잔액 부족을 구분되는 409로 거부하며 `Idempotency-Key` 재요청 시 최초 결과를 반환하도록 구현했다. `GET /api/library`, `POST /api/downloads`(원본 Presigned GET URL 5분 발급)도 구현했다. 마지막으로 실제 스레드로 "서로가 서로의 창작자·구매자가 되는" 동시 구매 테스트를 작성하다가, `AssetRepository.findPublishedDetailById`가 creator를 fetch join해 세션에 미잠금 상태로 올려두면 이후 `findByIdForUpdate` 잠금 조회가 DB 잠금은 획득해도 Hibernate가 캐시된 자바 객체를 반환해 크레딧 적립이 유실되는 버그를 발견했다. creator를 fetch join하지 않는 `AssetRepository.findPurchasableById`를 추가해 해결했다(자세한 내용은 `DECISIONS.md`).
+
+**막힌 부분:** 없음 (동시성 버그는 원인 파악 후 해결).
+
+**다음에 할 일:** `feature/15-...` 브랜치를 master에 병합하고 삭제한 뒤, 사용자 확인을 받아 7단계(창작자 대시보드)를 새 브랜치(`feature/16-...`)로 시작한다. 7단계는 락이 필요 없는 읽기 전용 집계라 이번에 겪은 잠금+세션 캐시 문제는 해당하지 않지만, `creator_settlement` 기준 집계 쿼리 작성 시 목록 페이지네이션과 `XToOne` fetch join 컨벤션은 계속 지킬 것.
+
+---
+
+## 2026-07-07 — Claude Code
+
 **무엇을 했나:** `feature/14-크레딧-목업결제-구현` 브랜치에서 5단계 전체를 완료했다. `CreditProduct`/`Payment`/`CreditTransaction` Entity+Repository(3계층), `GET /api/credit-products`, `POST /api/payments`(서버 가격 기준 목업 결제 + `Idempotency-Key` 필수·재요청 시 최초 결과 반환), `UserRepository.findByIdForUpdate`(`PESSIMISTIC_WRITE`) 도입, `GET /api/credit-transactions`까지 체크리스트 순서대로 TDD로 구현·커밋했다. 마지막 항목에서 실제 Testcontainers MySQL로 두 스레드가 동시에 결제하는 테스트를 작성하다가 `REPEATABLE READ`의 스냅샷 문제로 유니크 제약 위반을 발견해 `PaymentService.charge`를 `READ_COMMITTED`로 전환해 해결했다(자세한 내용은 `DECISIONS.md`). 4단계 브랜치(`feature/13`)도 이번 세션 시작 시 병합·삭제했다.
 
 **막힌 부분:** 없음 (동시성 버그는 원인 파악 후 해결).
