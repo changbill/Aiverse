@@ -94,6 +94,29 @@ class PaymentServiceTest {
     }
 
     @Test
+    void 잠금_대기_중_동시_요청이_먼저_커밋되면_새로_결제하지_않고_그_결과를_반환한다() {
+        User user = User.register("race@example.com", "encoded-password", "경쟁유저");
+        setField(user, "id", 5L);
+        CreditProduct product = product(2L, "PLUS", 1000, 100, 10000, CreditProductStatus.ACTIVE);
+        Payment wonByOtherRequest = Payment.mockSuccess(user, product, "idem-1");
+        setField(wonByOtherRequest, "id", 77L);
+        CreditTransaction existingTransaction = CreditTransaction.of(
+                user, wonByOtherRequest, CreditTransactionType.CHARGE, 1100, 1100, "credit_product:PLUS"
+        );
+        given(paymentRepository.findByUserIdAndIdempotencyKey(5L, "idem-1"))
+                .willReturn(Optional.empty(), Optional.of(wonByOtherRequest));
+        given(creditProductRepository.findById(2L)).willReturn(Optional.of(product));
+        given(userRepository.findByIdForUpdate(5L)).willReturn(Optional.of(user));
+        given(creditTransactionRepository.findByPaymentId(77L)).willReturn(Optional.of(existingTransaction));
+
+        PaymentResponse response = paymentService.charge(5L, new PaymentRequest(2L), "idem-1");
+
+        assertThat(response.paymentId()).isEqualTo(77L);
+        verify(paymentRepository, never()).save(any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     void 존재하지_않는_상품이면_예외를_던진다() {
         given(paymentRepository.findByUserIdAndIdempotencyKey(5L, "idem-1")).willReturn(Optional.empty());
         given(creditProductRepository.findById(999L)).willReturn(Optional.empty());

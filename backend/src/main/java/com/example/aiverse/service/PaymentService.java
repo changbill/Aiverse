@@ -3,6 +3,7 @@ package com.example.aiverse.service;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.aiverse.common.error.ApplicationException;
@@ -32,7 +33,9 @@ public class PaymentService {
     private final CreditTransactionRepository creditTransactionRepository;
     private final UserRepository userRepository;
 
-    @Transactional
+    // READ_COMMITTED: 기본 REPEATABLE READ에서는 잠금 대기 후 다시 조회해도 트랜잭션 시작 시점의
+    // 스냅샷을 계속 사용해 동시 요청이 이미 커밋한 결제를 못 보고 중복 삽입을 시도하게 된다.
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public PaymentResponse charge(Long userId, PaymentRequest request, String idempotencyKey) {
         Optional<Payment> existingPayment = paymentRepository.findByUserIdAndIdempotencyKey(userId, idempotencyKey);
         if (existingPayment.isPresent()) {
@@ -45,8 +48,13 @@ public class PaymentService {
             throw new ApplicationException(CreditErrorCode.PRODUCT_INACTIVE);
         }
 
+        // 사용자 행을 잠근 뒤 다시 확인한다 — 잠금 대기 중 동일 Idempotency-Key로 이미 처리된 동시 요청이 커밋됐을 수 있다.
         User user = userRepository.findByIdForUpdate(userId)
                 .orElseThrow(() -> new ApplicationException(AuthErrorCode.AUTHENTICATION_REQUIRED));
+        Optional<Payment> paymentAfterLock = paymentRepository.findByUserIdAndIdempotencyKey(userId, idempotencyKey);
+        if (paymentAfterLock.isPresent()) {
+            return toReplayResponse(paymentAfterLock.get());
+        }
 
         Payment payment = paymentRepository.save(Payment.mockSuccess(user, product, idempotencyKey));
 
