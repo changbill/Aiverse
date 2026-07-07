@@ -9,6 +9,16 @@
 
 ## 2026-07-07 — Claude Code
 
+**무엇을 했나:** `feature/16-창작자-대시보드-구현` 브랜치에서 7단계 전체를 완료했다. `DashboardPeriod`(쿼리 파라미터 7D/30D/ALL 파싱), `AssetRepository.countByCreatorId`, `CreatorSettlementRepository`에 Querydsl 기반 `sumSales`/`findDailySales`/`findTopAssetSales`를 추가하고 `GET /api/dashboard/sales`로 조립했다. `series`는 7D/30D에서 판매 없는 날짜를 0으로 채우고 `ALL`은 실제 판매일만 반환하도록 했으며, `items`는 판매량 상위 5개(동률 시 최신 콘텐츠 우선)를 반환한다. 진행 중 Querydsl `DateTemplate`으로 MySQL `DATE(...)`를 `LocalDate`로 바로 캐스팅하면 `ClassCastException`이 나는 걸 발견해 `java.sql.Date`로 받아 변환하도록 고쳤다(자세한 내용은 `DECISIONS.md`). 다른 창작자 데이터 미혼입과 기간 경계(정각 포함/직전 제외) 테스트도 추가했다.
+
+**막힌 부분:** 없음 (타입 캐스팅 버그는 원인 파악 후 해결).
+
+**다음에 할 일:** `feature/16-...` 브랜치를 master에 병합하고 삭제한 뒤, 사용자 확인을 받아 8단계(프론트엔드 REST API 전환)를 새 브랜치(`feature/17-...`)로 시작한다. 8단계부터는 `frontend/` 디렉터리 작업이 시작되므로 백엔드 전용이었던 이전 컨벤션(Repository 3계층, JPA fetch join 규칙 등)이 그대로 적용되지 않는 영역이 있을 수 있다는 점을 유의할 것.
+
+---
+
+## 2026-07-07 — Claude Code
+
 **무엇을 했나:** `feature/15-구매-보관함-다운로드-구현` 브랜치에서 6단계 전체를 완료했다. `Purchase`를 쓰기 가능하게 확장하고 `CreatorSettlement`/`Download` Entity+Repository를 추가했다. `POST /api/purchases`가 구매자·창작자 행을 사용자 ID 오름차순으로 잠근 뒤 잔액 차감·80% 창작자 정산·`Purchase`/`CreatorSettlement` 생성을 한 트랜잭션(`READ_COMMITTED`)으로 처리하고, 본인 콘텐츠·중복 구매·잔액 부족을 구분되는 409로 거부하며 `Idempotency-Key` 재요청 시 최초 결과를 반환하도록 구현했다. `GET /api/library`, `POST /api/downloads`(원본 Presigned GET URL 5분 발급)도 구현했다. 마지막으로 실제 스레드로 "서로가 서로의 창작자·구매자가 되는" 동시 구매 테스트를 작성하다가, `AssetRepository.findPublishedDetailById`가 creator를 fetch join해 세션에 미잠금 상태로 올려두면 이후 `findByIdForUpdate` 잠금 조회가 DB 잠금은 획득해도 Hibernate가 캐시된 자바 객체를 반환해 크레딧 적립이 유실되는 버그를 발견했다. creator를 fetch join하지 않는 `AssetRepository.findPurchasableById`를 추가해 해결했다(자세한 내용은 `DECISIONS.md`).
 
 **막힌 부분:** 없음 (동시성 버그는 원인 파악 후 해결).
