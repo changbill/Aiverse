@@ -129,6 +129,37 @@ class CreatorSettlementRepositoryTest extends RepositoryIntegrationTestSupport {
         CreatorSalesTotals totalsA = creatorSettlementRepository.sumSales(creatorA.getId(), null);
         assertThat(totalsA.salesCount()).isEqualTo(1);
         assertThat(totalsA.revenueCredit()).isEqualTo(80);
+
+        var dailyA = creatorSettlementRepository.findDailySales(creatorA.getId(), null, LocalDateTime.now().plusMinutes(1));
+        assertThat(dailyA).hasSize(1);
+        assertThat(dailyA.getFirst().salesCount()).isEqualTo(1);
+
+        var itemsA = creatorSettlementRepository.findTopAssetSales(creatorA.getId(), null, 5);
+        assertThat(itemsA).extracting(CreatorAssetSales::assetId).containsExactly(assetA.getId());
+    }
+
+    @Test
+    void 기간_시작_경계에_걸친_판매는_포함하고_경계_직전은_제외한다() {
+        User creator = userRepository.save(User.register("boundary-creator@example.com", "encoded-password", "경계창작자"));
+        User buyer = userRepository.save(User.register("boundary-buyer@example.com", "encoded-password", "경계구매자"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        Asset assetAtBoundary = assetRepository.save(Asset.register(
+                creator, "경계 정각 콘텐츠", null, AssetType.IMAGE, category,
+                null, "original/boundary-at.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+        Asset assetBeforeBoundary = assetRepository.save(Asset.register(
+                creator, "경계 직전 콘텐츠", null, AssetType.IMAGE, category,
+                null, "original/boundary-before.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+        LocalDateTime boundary = LocalDateTime.now().minusDays(7);
+
+        sale(creator, buyer, assetAtBoundary, 100, 20, 80, boundary);
+        sale(creator, buyer, assetBeforeBoundary, 100, 20, 80, boundary.minusSeconds(1));
+
+        CreatorSalesTotals totals = creatorSettlementRepository.sumSales(creator.getId(), boundary);
+
+        assertThat(totals.salesCount()).isEqualTo(1);
+        assertThat(totals.revenueCredit()).isEqualTo(80);
     }
 
     @Test
