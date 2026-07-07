@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -50,4 +51,32 @@ public class Purchase {
 
     @Column(name = "purchased_at", nullable = false)
     private LocalDateTime purchasedAt;
+
+    @Builder
+    private Purchase(
+            User user, Asset asset, Long creditTransactionId, String idempotencyKey,
+            int purchasePriceCredit, LicenseType licenseType
+    ) {
+        this.user = user;
+        this.asset = asset;
+        this.creditTransactionId = creditTransactionId;
+        this.idempotencyKey = idempotencyKey;
+        this.purchasePriceCredit = purchasePriceCredit;
+        this.licenseType = licenseType;
+        this.purchasedAt = LocalDateTime.now();
+    }
+
+    public static Purchase of(
+            User user, Asset asset, Long creditTransactionId, String idempotencyKey,
+            int purchasePriceCredit, LicenseType licenseType
+    ) {
+        return Purchase.builder()
+                .user(user)
+                .asset(asset)
+                .creditTransactionId(creditTransactionId)
+                .idempotencyKey(idempotencyKey)
+                .purchasePriceCredit(purchasePriceCredit)
+                .licenseType(licenseType)
+                .build();
+    }
 }
