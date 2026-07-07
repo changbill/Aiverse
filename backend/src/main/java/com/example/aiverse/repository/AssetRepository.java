@@ -20,4 +20,6 @@ public interface AssetRepository {
     Page<Asset> search(AssetSearchCondition condition, Pageable pageable);
 
     boolean existsByObjectKey(String objectKey);
+
+    long countByCreatorId(Long creatorId);
 }

@@ -65,6 +65,28 @@ class AssetRepositoryTest extends RepositoryIntegrationTestSupport {
     }
 
     @Test
+    void 창작자가_등록한_콘텐츠_수를_센다() {
+        User creator = userRepository.save(User.register("count-creator@example.com", "encoded-password", "카운트창작자"));
+        User otherCreator = userRepository.save(User.register("count-other@example.com", "encoded-password", "다른창작자"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        assetRepository.save(Asset.register(
+                creator, "콘텐츠1", null, AssetType.IMAGE, category,
+                null, "original/count-1.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+        assetRepository.save(Asset.register(
+                creator, "콘텐츠2", null, AssetType.IMAGE, category,
+                null, "original/count-2.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+        assetRepository.save(Asset.register(
+                otherCreator, "다른창작자 콘텐츠", null, AssetType.IMAGE, category,
+                null, "original/count-3.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+
+        assertThat(assetRepository.countByCreatorId(creator.getId())).isEqualTo(2);
+        assertThat(assetRepository.countByCreatorId(otherCreator.getId())).isEqualTo(1);
+    }
+
+    @Test
     void 구매_가능_여부_조회는_PUBLISHED_상태만_반환한다() {
         User creator = userRepository.save(User.register("purchasable@example.com", "encoded-password", "구매가능창작자"));
         Category category = categoryRepository.findById(1L).orElseThrow();

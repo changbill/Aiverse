@@ -59,6 +59,11 @@ public class AssetRepositoryImpl implements AssetRepository {
     }
 
     @Override
+    public long countByCreatorId(Long creatorId) {
+        return assetJpaRepository.countByCreatorId(creatorId);
+    }
+
+    @Override
     public Page<Asset> search(AssetSearchCondition condition, Pageable pageable) {
         QAsset asset = QAsset.asset;
         QAssetTag assetTag = QAssetTag.assetTag;

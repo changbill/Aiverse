@@ -39,4 +39,6 @@ public interface AssetJpaRepository extends JpaRepository<Asset, Long> {
             OR asset.originalObjectKey = :objectKey
             """)
     boolean existsByObjectKey(@Param("objectKey") String objectKey);
+
+    long countByCreatorId(Long creatorId);
 }
