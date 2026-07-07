@@ -20,4 +20,12 @@ public interface AssetJpaRepository extends JpaRepository<Asset, Long> {
             AND asset.status = :status
             """)
     Optional<Asset> findByIdAndStatus(@Param("id") Long id, @Param("status") AssetStatus status);
+
+    @Query("""
+            SELECT CASE WHEN COUNT(asset) > 0 THEN TRUE ELSE FALSE END
+            FROM Asset asset
+            WHERE asset.previewObjectKey = :objectKey
+            OR asset.originalObjectKey = :objectKey
+            """)
+    boolean existsByObjectKey(@Param("objectKey") String objectKey);
 }

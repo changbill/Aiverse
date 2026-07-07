@@ -49,6 +49,11 @@ public class AssetRepositoryImpl implements AssetRepository {
     }
 
     @Override
+    public boolean existsByObjectKey(String objectKey) {
+        return assetJpaRepository.existsByObjectKey(objectKey);
+    }
+
+    @Override
     public Page<Asset> search(AssetSearchCondition condition, Pageable pageable) {
         QAsset asset = QAsset.asset;
         QAssetTag assetTag = QAssetTag.assetTag;
