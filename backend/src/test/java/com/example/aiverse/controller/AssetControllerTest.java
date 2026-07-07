@@ -4,19 +4,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import com.example.aiverse.common.error.ApplicationException;
 import com.example.aiverse.common.error.AssetErrorCode;
@@ -38,9 +46,27 @@ class AssetControllerTest {
 
     @BeforeEach
     void setUp() {
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
+
         mockMvc = MockMvcBuilders.standaloneSetup(new AssetController(assetService))
                 .setControllerAdvice(new GlobalExceptionHandler())
+                .setValidator(validator)
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+    private void authenticateAs(Long userId) {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        userId, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
     }
 
     @Test
@@ -84,5 +110,37 @@ class AssetControllerTest {
 
         mockMvc.perform(get("/api/contents/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void 콘텐츠_등록에_성공하면_201과_상세_정보를_반환한다() throws Exception {
+        given(assetService.create(eq(5L), any())).willReturn(new AssetDetailResponse(
+                1L, "제목", "설명", AssetType.IMAGE, 4L, "preview/key.jpg", 120,
+                "Midjourney", LicenseType.COMMERCIAL, 0L, 5L, "홍길동",
+                List.of("cyberpunk"), LocalDateTime.now(), null
+        ));
+        authenticateAs(5L);
+
+        mockMvc.perform(post("/api/contents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "제목",
+                                  "description": "설명",
+                                  "assetType": "IMAGE",
+                                  "categoryId": 4,
+                                  "originalObjectKey": "tmp/user-5/uuid/original.png",
+                                  "originalFilename": "sunset.png",
+                                  "contentType": "image/png",
+                                  "fileSize": 1000000,
+                                  "priceCredit": 120,
+                                  "aiTool": "Midjourney",
+                                  "licenseType": "COMMERCIAL",
+                                  "tags": ["cyberpunk"]
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.title").value("제목"));
     }
 }

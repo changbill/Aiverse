@@ -3,7 +3,8 @@ package com.example.aiverse.common.error;
 import org.springframework.http.HttpStatus;
 
 public enum AssetErrorCode implements ErrorCode {
-    ASSET_NOT_FOUND("ASSET_NOT_FOUND", "콘텐츠를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    ASSET_NOT_FOUND("ASSET_NOT_FOUND", "콘텐츠를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    CATEGORY_NOT_FOUND("CATEGORY_NOT_FOUND", "카테고리를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
 
     private final String code;
     private final String message;
