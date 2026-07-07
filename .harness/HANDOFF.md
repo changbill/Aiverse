@@ -7,6 +7,16 @@
 
 ---
 
+## 2026-07-07 — Codex
+
+**무엇을 했나:** 사용자 요청으로 로컬 환경 변수 기준을 정리했다. `backend/.env`에 Docker Compose용 MySQL·MinIO 변수와 Spring Boot 로컬 실행용 datasource·storage·JWT 변수를 섹션별로 추가했다. `local` 프로필은 `${ENV:기본값}` 형태를 유지해 `.env` 로드 없이도 기본 Docker Compose 구성으로 실행 가능하게 두고, `test`는 재현성을 위해 테스트 전용 고정값 유지, `prod`는 환경 변수 필수 주입이라는 정책을 `ARCHITECTURE.md`와 `STATE.md`에 반영했다. `docker compose config --quiet`로 Compose 설정 검증도 통과했다.
+
+**막힌 부분:** 없음.
+
+**다음에 할 일:** 이전 인수인계대로 `feature/13-...` 브랜치 병합/정리 후 사용자 확인을 받아 5단계(크레딧과 목업 결제)를 시작한다.
+
+---
+
 ## 2026-07-07 — Claude Code
 
 **무엇을 했나:** `feature/13-파일업로드-콘텐츠관리-구현` 브랜치에서 4단계 전체를 완료했다. `ObjectStorageClient`/`S3ObjectStorageClient`(경로 스타일 접근, Presigned PUT URL)와 `StorageConfig`/`StorageProperties`를 구현하고, `POST /api/files/upload`(형식·용량 검증 후 `tmp/user-{id}/{uuid}/{fileName}` 발급), `POST /api/contents`(HEAD 재검증 포함 등록), `PUT`/`DELETE /api/contents/{id}`(소유자 검증, 판매 후 원본·라이선스 변경 409), 시간마다 도는 `TempObjectCleanupJob`(24시간 지난 미참조 임시 객체 삭제)까지 순서대로 TDD로 구현·커밋했다. 마지막으로 소프트 삭제/`existsByObjectKey`/인증 경계 테스트를 보강했다. 진행 중 Docker Desktop이 꺼져 있어 통합 테스트를 잠시 미루고 단위 테스트로만 검증하다가, 사용자 확인 후 Docker Desktop을 재시작해 `AssetRepositoryTest`·`SecurityFilterChainTest`·`AiverseApplicationTests` 통합 테스트로 최종 검증했다.

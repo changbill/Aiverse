@@ -22,6 +22,7 @@
 - Controller는 `ApiResponse<T>`/`PageResponse<T>`만 반환(`ResponseEntity` 금지, 비-200 상태는 `@ResponseStatus`), 라우팅만 담당하고 보조 로직은 `util`로 분리.
 - 연관관계 N+1은 명시적 JPQL/Querydsl fetch join으로 해결(`@EntityGraph` 금지). 페이징 목록은 `XToOne`만 fetch join하고 목록·상세 DTO를 분리.
 - Swagger UI(springdoc-openapi 3.0.3+) 제공 — Controller마다 `@Tag`/`@Operation`/(인증 필요 시) `@SecurityRequirement`.
+- 로컬 환경 변수는 `backend/.env`에 Docker Compose 변수와 Spring Boot 로컬 실행 변수를 함께 정리한다. `local`은 `${ENV:기본값}`으로 즉시 실행 가능하게 두고, `test`는 재현성을 위해 테스트 전용 고정값을 사용하며, `prod`는 환경 변수 주입을 필수로 한다.
 - AIverse 백엔드 구현은 서브에이전트 팀 없이 단일 에이전트가 직접 수행 (`aiverse-backend-builder` 스킬 미사용).
 - 소스 코드 변경 없는 순수 문서/설정 작업은 feature 브랜치 없이 master에 바로 커밋.
 - 브랜치 전략: `PLAN.md` 단계 하나당 브랜치 하나, 체크리스트 항목 하나당 커밋 하나 (자세한 내용은 `CLAUDE.md`의 "하네스: 브랜치 전략" 참조).

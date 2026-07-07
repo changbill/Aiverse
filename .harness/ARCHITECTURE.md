@@ -348,6 +348,8 @@ spring:
 | `STORAGE_BUCKET`             | Object Storage bucket 이름 |
 | `JWT_SECRET_KEY`             | Access token 서명 키 (HMAC-SHA256, Base64) |
 
+로컬 개발에서는 `backend/.env`에 Docker Compose 변수와 Spring Boot 로컬 실행 변수를 함께 정리한다. `application-local.yaml`은 `${ENV:로컬기본값}` 형태를 유지해 `.env`를 로드하지 않아도 기본 Docker Compose 구성으로 바로 실행할 수 있게 한다. `application-test.yaml`은 외부 환경 변수에 의존하지 않는 테스트 전용 고정값을 사용하고, `application-prod.yaml`은 기본값 없이 환경 변수 주입을 필수로 한다.
+
 ### CORS
 
 프론트엔드 도메인에서 API 호출을 허용해야 한다.
