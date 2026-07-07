@@ -65,6 +65,37 @@ class AssetRepositoryTest extends RepositoryIntegrationTestSupport {
     }
 
     @Test
+    void 소프트_삭제된_콘텐츠는_상세_조회에서_제외된다() {
+        User creator = userRepository.save(User.register("deleted-owner@example.com", "encoded-password", "삭제창작자"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        Asset asset = assetRepository.save(Asset.register(
+                creator, "삭제될 콘텐츠", null, AssetType.IMAGE, category,
+                null, "original/deleted.png", "file.png", "image/png",
+                1000L, 100, null, LicenseType.PERSONAL
+        ));
+
+        asset.softDelete();
+        assetRepository.save(asset);
+
+        assertThat(assetRepository.findPublishedDetailById(asset.getId())).isEmpty();
+    }
+
+    @Test
+    void 객체_키가_미리보기나_원본으로_등록되어_있으면_존재한다() {
+        User creator = userRepository.save(User.register("object-key@example.com", "encoded-password", "객체키창작자"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        assetRepository.save(Asset.register(
+                creator, "제목", null, AssetType.IMAGE, category,
+                "tmp/user-1/preview.jpg", "tmp/user-1/original.png", "file.png", "image/png",
+                1000L, 100, null, LicenseType.PERSONAL
+        ));
+
+        assertThat(assetRepository.existsByObjectKey("tmp/user-1/preview.jpg")).isTrue();
+        assertThat(assetRepository.existsByObjectKey("tmp/user-1/original.png")).isTrue();
+        assertThat(assetRepository.existsByObjectKey("tmp/user-1/unused.png")).isFalse();
+    }
+
+    @Test
     void 조회수를_증가시킬_수_있다() {
         User creator = userRepository.save(User.register("creator2@example.com", "encoded-password", "창작자2"));
         Category category = categoryRepository.findById(1L).orElseThrow();

@@ -87,6 +87,31 @@ class SecurityFilterChainTest extends IntegrationTestSupport {
     }
 
     @Test
+    void 인증_없이_파일_업로드를_요청하면_401을_반환한다() throws Exception {
+        mockMvc.perform(post("/api/files/upload")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "purpose": "COVER",
+                                  "fileName": "cover.png",
+                                  "contentType": "image/png",
+                                  "fileSize": 1000
+                                }
+                                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+    }
+
+    @Test
+    void 인증_없이_콘텐츠_등록을_요청하면_401을_반환한다() throws Exception {
+        mockMvc.perform(post("/api/contents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"));
+    }
+
+    @Test
     void 클라이언트가_보낸_요청_id가_401_응답에도_그대로_반영된다() throws Exception {
         String requestId = "client-request-id-1234";
 
