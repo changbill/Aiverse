@@ -131,6 +131,66 @@ class CreatorSettlementRepositoryTest extends RepositoryIntegrationTestSupport {
         assertThat(totalsA.revenueCredit()).isEqualTo(80);
     }
 
+    @Test
+    void 일자별_판매_횟수와_매출을_날짜로_묶어_반환한다() {
+        User creator = userRepository.save(User.register("daily-creator@example.com", "encoded-password", "일별창작자"));
+        User buyer = userRepository.save(User.register("daily-buyer@example.com", "encoded-password", "일별구매자"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        Asset assetA = assetRepository.save(Asset.register(
+                creator, "일별 대상A", null, AssetType.IMAGE, category,
+                null, "original/daily-a.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+        Asset assetB = assetRepository.save(Asset.register(
+                creator, "일별 대상B", null, AssetType.IMAGE, category,
+                null, "original/daily-b.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+        LocalDateTime today = LocalDateTime.now();
+        LocalDateTime yesterday = today.minusDays(1);
+
+        sale(creator, buyer, assetA, 100, 20, 80, today);
+        sale(creator, buyer, assetB, 100, 20, 80, yesterday);
+
+        var series = creatorSettlementRepository.findDailySales(
+                creator.getId(), yesterday.toLocalDate().atStartOfDay(), today.toLocalDate().atTime(23, 59, 59)
+        );
+
+        assertThat(series).hasSize(2);
+        assertThat(series.get(0).date()).isEqualTo(yesterday.toLocalDate());
+        assertThat(series.get(0).salesCount()).isEqualTo(1);
+        assertThat(series.get(1).date()).isEqualTo(today.toLocalDate());
+        assertThat(series.get(1).salesCount()).isEqualTo(1);
+    }
+
+    @Test
+    void 판매량_상위_5개를_동률이면_최신_콘텐츠_우선으로_반환한다() {
+        User creator = userRepository.save(User.register("top-creator@example.com", "encoded-password", "상위창작자"));
+        User buyerA = userRepository.save(User.register("top-buyer-a@example.com", "encoded-password", "상위구매자A"));
+        User buyerB = userRepository.save(User.register("top-buyer-b@example.com", "encoded-password", "상위구매자B"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        Asset mostSold = assetRepository.save(Asset.register(
+                creator, "베스트셀러", null, AssetType.IMAGE, category,
+                null, "original/best.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+        Asset olderTie = assetRepository.save(Asset.register(
+                creator, "이전 콘텐츠", null, AssetType.IMAGE, category,
+                null, "original/older.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+        Asset newerTie = assetRepository.save(Asset.register(
+                creator, "최신 콘텐츠", null, AssetType.IMAGE, category,
+                null, "original/newer.png", "file.png", "image/png", 1000L, 100, null, LicenseType.PERSONAL
+        ));
+
+        sale(creator, buyerA, mostSold, 100, 20, 80, LocalDateTime.now());
+        sale(creator, buyerB, mostSold, 100, 20, 80, LocalDateTime.now());
+        sale(creator, buyerA, olderTie, 100, 20, 80, LocalDateTime.now());
+        sale(creator, buyerA, newerTie, 100, 20, 80, LocalDateTime.now());
+
+        var items = creatorSettlementRepository.findTopAssetSales(creator.getId(), null, 5);
+
+        assertThat(items).extracting(CreatorAssetSales::assetId)
+                .containsExactly(mostSold.getId(), newerTie.getId(), olderTie.getId());
+    }
+
     private void sale(
             User creator, User buyer, Asset asset,
             int price, int platformFee, int revenue, LocalDateTime settledAt
