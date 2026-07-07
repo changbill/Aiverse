@@ -36,9 +36,6 @@
 - [ ] 백엔드 전체 테스트와 Gradle 빌드 수행
 - [ ] 프론트엔드 프로덕션 빌드 수행
 - [ ] Docker Compose 환경에서 회원가입→업로드→충전→구매→다운로드→대시보드 흐름 검증
-- [ ] 구현된 동작을 `SPEC.md`, 실행 방법을 `README.md`, 완료 단계 결과를 `.codex/markdown/`에 반영
-
-**영향받는 영역:** frontend / backend / `README.md` / `SPEC.md` / `.codex/markdown/` / `.harness`
 
 ## 계획 작성 형식
 
@@ -48,7 +45,8 @@
 **배경:** 왜 필요한가
 **범위:** 무엇을 하고, 무엇을 하지 않는가
 **단계:**
+
 - [ ] 단계 1
 - [ ] 단계 2
-**영향받는 영역:** frontend / backend / 둘 다
+      **영향받는 영역:** frontend / backend / 둘 다
 ```
