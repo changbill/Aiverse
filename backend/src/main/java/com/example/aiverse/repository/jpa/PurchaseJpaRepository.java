@@ -16,7 +16,16 @@ public interface PurchaseJpaRepository extends JpaRepository<Purchase, Long> {
 
     boolean existsByUserIdAndAssetId(Long userId, Long assetId);
 
-    Optional<Purchase> findByUserIdAndIdempotencyKey(Long userId, String idempotencyKey);
+    @Query("""
+            SELECT p FROM Purchase p
+            JOIN FETCH p.asset
+            WHERE p.user.id = :userId
+            AND p.idempotencyKey = :idempotencyKey
+            """)
+    Optional<Purchase> findByUserIdAndIdempotencyKey(
+            @Param("userId") Long userId,
+            @Param("idempotencyKey") String idempotencyKey
+    );
 
     @Query("""
             SELECT p FROM Purchase p

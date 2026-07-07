@@ -25,6 +25,11 @@ public class CreditTransactionRepositoryImpl implements CreditTransactionReposit
     }
 
     @Override
+    public Optional<CreditTransaction> findById(Long id) {
+        return creditTransactionJpaRepository.findById(id);
+    }
+
+    @Override
     public Optional<CreditTransaction> findByPaymentId(Long paymentId) {
         return creditTransactionJpaRepository.findByPaymentId(paymentId);
     }

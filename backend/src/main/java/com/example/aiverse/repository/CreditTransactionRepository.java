@@ -12,6 +12,8 @@ public interface CreditTransactionRepository {
 
     CreditTransaction save(CreditTransaction creditTransaction);
 
+    Optional<CreditTransaction> findById(Long id);
+
     Optional<CreditTransaction> findByPaymentId(Long paymentId);
 
     Page<CreditTransaction> search(Long userId, CreditTransactionType type, Pageable pageable);
