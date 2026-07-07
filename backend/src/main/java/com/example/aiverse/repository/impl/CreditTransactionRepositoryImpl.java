@@ -1,5 +1,7 @@
 package com.example.aiverse.repository.impl;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -20,6 +22,11 @@ public class CreditTransactionRepositoryImpl implements CreditTransactionReposit
     @Override
     public CreditTransaction save(CreditTransaction creditTransaction) {
         return creditTransactionJpaRepository.save(creditTransaction);
+    }
+
+    @Override
+    public Optional<CreditTransaction> findByPaymentId(Long paymentId) {
+        return creditTransactionJpaRepository.findByPaymentId(paymentId);
     }
 
     @Override

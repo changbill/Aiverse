@@ -11,6 +11,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -48,6 +49,17 @@ public class GlobalExceptionHandler {
                 fieldErrors,
                 request
         );
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeader(
+            MissingRequestHeaderException exception,
+            HttpServletRequest request
+    ) {
+        List<FieldErrorResponse> fieldErrors = List.of(
+                new FieldErrorResponse(exception.getHeaderName(), "필수 헤더입니다.")
+        );
+        return response(CommonErrorCode.VALIDATION_ERROR, CommonErrorCode.VALIDATION_ERROR.message(), fieldErrors, request);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

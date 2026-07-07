@@ -1,5 +1,7 @@
 package com.example.aiverse.repository.jpa;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +12,8 @@ import com.example.aiverse.entity.CreditTransaction;
 import com.example.aiverse.entity.CreditTransactionType;
 
 public interface CreditTransactionJpaRepository extends JpaRepository<CreditTransaction, Long> {
+
+    Optional<CreditTransaction> findByPaymentId(Long paymentId);
 
     @Query("""
             SELECT creditTransaction
