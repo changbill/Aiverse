@@ -17,6 +17,8 @@ import com.example.aiverse.repository.impl.PurchaseRepositoryImpl;
 import com.example.aiverse.repository.impl.RefreshTokenRepositoryImpl;
 import com.example.aiverse.repository.impl.TagRepositoryImpl;
 import com.example.aiverse.repository.impl.UserRepositoryImpl;
+import com.example.aiverse.repository.querydsl.AssetQuerydslRepository;
+import com.example.aiverse.repository.querydsl.CreatorSettlementQuerydslRepository;
 
 @TestConfiguration
 @Import({
@@ -24,6 +26,7 @@ import com.example.aiverse.repository.impl.UserRepositoryImpl;
         CategoryRepositoryImpl.class,
         TagRepositoryImpl.class,
         AssetRepositoryImpl.class,
+        AssetQuerydslRepository.class,
         AssetTagRepositoryImpl.class,
         RefreshTokenRepositoryImpl.class,
         PurchaseRepositoryImpl.class,
@@ -31,6 +34,7 @@ import com.example.aiverse.repository.impl.UserRepositoryImpl;
         PaymentRepositoryImpl.class,
         CreditTransactionRepositoryImpl.class,
         CreatorSettlementRepositoryImpl.class,
+        CreatorSettlementQuerydslRepository.class,
         DownloadRepositoryImpl.class,
 })
 @ImportAutoConfiguration(FlywayAutoConfiguration.class)

@@ -59,7 +59,7 @@ alwaysApply: true
 | `IntegrationTestSupport` | `@SpringBootTest` + Testcontainers | 앱 기동 검증, Security 필터 체인, MockMvc 전체 스택 |
 
 - Testcontainers MySQL은 `TestcontainersConfiguration`의 Spring `@Bean`으로 관리하고 `withReuse(true)` + `src/test/resources/testcontainers.properties`(`testcontainers.reuse.enable=true`)로 컨테이너를 재사용한다.
-- Repository 통합 테스트 작성 시 `RepositoryIntegrationTestSupport`를 상속한다. 새 `*RepositoryImpl` 추가 시 `RepositoryIntegrationTestConfiguration`에 등록한다.
+- Repository 통합 테스트 작성 시 `RepositoryIntegrationTestSupport`를 상속한다. 새 `*RepositoryImpl`·`*QuerydslRepository` 추가 시 `RepositoryIntegrationTestConfiguration`에 등록한다.
 - 테스트별 데이터 격리는 `@Transactional` 롤백을 유지한다.
 
 ## 하네스: JPA 조회 최적화

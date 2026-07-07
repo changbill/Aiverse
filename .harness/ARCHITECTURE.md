@@ -238,19 +238,23 @@ com.example.aiverse/
 
 ### Repository 계층 구조
 
-Repository는 도메인 인터페이스와 구현을 분리한 3계층으로 구성한다. 서비스 계층은 항상 도메인 인터페이스에만 의존하고, Spring Data JPA 타입을 직접 참조하지 않는다.
+Repository는 도메인 인터페이스와 구현을 분리한 계층으로 구성한다. 서비스 계층은 항상 도메인 인터페이스에만 의존하고, Spring Data JPA·Querydsl 타입을 직접 참조하지 않는다.
 
 ```
 repository/
-├── {Entity}Repository.java          # 도메인 인터페이스 (서비스가 의존하는 포트)
+├── {Entity}Repository.java             # 도메인 인터페이스 (서비스가 의존하는 포트)
 ├── jpa/
-│   └── {Entity}JpaRepository.java   # Spring Data JpaRepository — 실제 구현체 (Spring이 런타임에 생성)
+│   └── {Entity}JpaRepository.java      # Spring Data JpaRepository — 단순 CRUD/파생 쿼리 (Spring이 런타임에 생성)
+├── querydsl/
+│   └── {Entity}QuerydslRepository.java # 동적 쿼리·집계 전담 컴포넌트 (`@Repository`, `EntityManager` 주입, `JPAQueryFactory` 사용)
 └── impl/
-    └── {Entity}RepositoryImpl.java  # 도메인 인터페이스를 구현하는 중간 구현체(어댑터), 내부에서 {Entity}JpaRepository/Querydsl을 사용
+    └── {Entity}RepositoryImpl.java     # 도메인 인터페이스를 구현하는 어댑터 — {Entity}JpaRepository/{Entity}QuerydslRepository를 주입받아 각 메서드를 위임만 한다
 ```
 
 - 서비스는 `{Entity}Repository`(인터페이스)만 주입받는다.
-- 단순 CRUD·Querydsl 동적 쿼리가 필요한 조회는 `{Entity}RepositoryImpl`에서 `{Entity}JpaRepository`와 `JPAQueryFactory`를 조합해 구현한다.
+- `{Entity}RepositoryImpl`은 로직을 직접 갖지 않는다 — `{Entity}JpaRepository`(단순 CRUD)와 `{Entity}QuerydslRepository`(동적 쿼리·집계)를 생성자로 주입받아 메서드별로 위임만 한다.
+- 동적 조건 조합·그룹핑 집계 등 Querydsl이 필요한 조회는 `{Entity}QuerydslRepository`에 구현한다. 이 클래스가 `EntityManager`를 주입받아 `JPAQueryFactory`를 만드는 유일한 지점이며, `{Entity}RepositoryImpl`은 `EntityManager`를 직접 다루지 않는다.
+- `@DataJpaTest` 슬라이스는 `{Entity}RepositoryImpl`처럼 `{Entity}QuerydslRepository`도 컴포넌트 스캔하지 않으므로, `RepositoryIntegrationTestConfiguration`에 함께 등록해야 한다.
 - 이 구조는 모든 모듈(Content/Credit/Purchase/Dashboard 등)의 Repository에 동일하게 적용한다.
 
 ### JPA 조회 최적화
