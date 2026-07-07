@@ -7,6 +7,7 @@ import com.example.aiverse.entity.LicenseType;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
@@ -38,7 +39,7 @@ public record AssetCreateRequest(
         @PositiveOrZero(message = "fileSize는 0 이상이어야 합니다.")
         long fileSize,
 
-        @PositiveOrZero(message = "priceCredit은 0 이상이어야 합니다.")
+        @Positive(message = "priceCredit은 0보다 커야 합니다.")
         int priceCredit,
 
         String aiTool,

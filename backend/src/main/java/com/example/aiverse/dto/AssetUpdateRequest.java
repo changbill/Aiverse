@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.example.aiverse.entity.LicenseType;
 
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record AssetUpdateRequest(
@@ -18,7 +18,7 @@ public record AssetUpdateRequest(
 
         String previewObjectKey,
 
-        @PositiveOrZero(message = "priceCredit은 0 이상이어야 합니다.")
+        @Positive(message = "priceCredit은 0보다 커야 합니다.")
         Integer priceCredit,
 
         String aiTool,

@@ -149,6 +149,29 @@ class AssetControllerTest {
     }
 
     @Test
+    void 가격이_0원이면_콘텐츠_등록을_거부한다() throws Exception {
+        authenticateAs(5L);
+
+        mockMvc.perform(post("/api/contents")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "제목",
+                                  "assetType": "IMAGE",
+                                  "categoryId": 4,
+                                  "originalObjectKey": "tmp/user-5/uuid/original.png",
+                                  "originalFilename": "sunset.png",
+                                  "contentType": "image/png",
+                                  "fileSize": 1000000,
+                                  "priceCredit": 0,
+                                  "licenseType": "COMMERCIAL"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
     void 콘텐츠_수정에_성공하면_수정된_정보를_반환한다() throws Exception {
         given(assetService.update(eq(5L), eq(1L), any())).willReturn(new AssetDetailResponse(
                 1L, "수정된 제목", "설명", AssetType.IMAGE, 4L, "preview/key.jpg", 200,
