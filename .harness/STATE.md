@@ -13,6 +13,7 @@
 - **2단계 회원과 인증**: `User`/`RefreshToken` Entity+Repository(3계층), 회원가입·로그인·현재 사용자 조회, Swagger UI(springdoc), Access token 발급과 `SecurityFilterChain`, Refresh token 쿠키·해시 저장·회전·로그아웃, 입력 검증·인증 오류 테스트까지 전체 완료.
 - **3단계 카테고리·태그·콘텐츠 탐색**: `Category`/`Tag`/`Asset`/`AssetTag` Entity+Repository(3계층), `GET /api/categories`·`GET /api/tags`, Querydsl 콘텐츠 검색·필터·정렬(`LATEST`/`POPULAR`/`PRICE_ASC`/`PRICE_DESC`)·페이지네이션, `GET /api/contents` 목록과 `GET /api/contents/{id}` 상세+`view_count` 증가, 비활성 카테고리 제외·태그 정규화·정렬 통합 테스트까지 전체 완료.
 - **4단계 파일 업로드와 콘텐츠 관리**: S3/MinIO `ObjectStorageClient`(Presigned URL 발급)와 `POST /api/files/upload`(형식·용량 검증 후 사용자별 임시 객체 키 발급), `HEAD` 재검증을 포함한 `POST /api/contents` 등록, 소유자 전용 `PUT`/`DELETE /api/contents/{id}`(최초 판매 후 원본·라이선스 변경 409), 미등록 임시 객체 24시간 정리 스케줄러, 관련 경계 테스트까지 전체 완료.
+- **5단계 크레딧과 목업 결제**: `CreditProduct`/`Payment`/`CreditTransaction` Entity+Repository(3계층), `GET /api/credit-products`(활성 상품만), `POST /api/payments`(서버 가격 기준 목업 결제, `Idempotency-Key` 필수·재요청 시 최초 결과 반환), 사용자 행 `PESSIMISTIC_WRITE` 잠금과 `READ_COMMITTED` 격리로 잔액·결제·거래 이력을 원자 처리, `GET /api/credit-transactions`(유형 필터·페이지네이션), 실제 스레드로 검증한 중복 충전·동시 요청 테스트까지 전체 완료.
 
 ## 확립된 컨벤션 (요약 — 근거·배경은 `DECISIONS.md` 참조)
 
@@ -22,6 +23,7 @@
 - Controller는 `ApiResponse<T>`/`PageResponse<T>`만 반환(`ResponseEntity` 금지, 비-200 상태는 `@ResponseStatus`), 라우팅만 담당하고 보조 로직은 `util`로 분리.
 - 연관관계 N+1은 명시적 JPQL/Querydsl fetch join으로 해결(`@EntityGraph` 금지). 페이징 목록은 `XToOne`만 fetch join하고 목록·상세 DTO를 분리.
 - Swagger UI(springdoc-openapi 3.0.3+) 제공 — Controller마다 `@Tag`/`@Operation`/(인증 필요 시) `@SecurityRequirement`.
+- 비관적 쓰기 잠금 획득 후 같은 트랜잭션에서 조건을 다시 확인해야 하는 흐름(멱등키 재확인 등)은 기본 `REPEATABLE READ` 대신 `@Transactional(isolation = Isolation.READ_COMMITTED)`를 사용한다 — 그렇지 않으면 재확인 조회가 트랜잭션 시작 시점 스냅샷을 계속 사용해 동시 커밋을 못 본다.
 - 로컬 환경 변수는 `backend/.env`에 Docker Compose 변수와 Spring Boot 로컬 실행 변수를 함께 정리한다. `local`은 `${ENV:기본값}`으로 즉시 실행 가능하게 두고, `test`는 재현성을 위해 테스트 전용 고정값을 사용하며, `prod`는 환경 변수 주입을 필수로 한다.
 - AIverse 백엔드 구현은 서브에이전트 팀 없이 단일 에이전트가 직접 수행 (`aiverse-backend-builder` 스킬 미사용).
 - 소스 코드 변경 없는 순수 문서/설정 작업은 feature 브랜치 없이 master에 바로 커밋.
@@ -29,4 +31,4 @@
 
 ## 다음 단계
 
-5단계 크레딧과 목업 결제 → ... 9단계 전체 검증과 문서화 순 (자세한 내용은 `PLAN.md` 참조).
+6단계 구매·보관함·다운로드 → ... 9단계 전체 검증과 문서화 순 (자세한 내용은 `PLAN.md` 참조).

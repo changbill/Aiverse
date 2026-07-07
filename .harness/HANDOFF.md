@@ -7,6 +7,16 @@
 
 ---
 
+## 2026-07-07 — Claude Code
+
+**무엇을 했나:** `feature/14-크레딧-목업결제-구현` 브랜치에서 5단계 전체를 완료했다. `CreditProduct`/`Payment`/`CreditTransaction` Entity+Repository(3계층), `GET /api/credit-products`, `POST /api/payments`(서버 가격 기준 목업 결제 + `Idempotency-Key` 필수·재요청 시 최초 결과 반환), `UserRepository.findByIdForUpdate`(`PESSIMISTIC_WRITE`) 도입, `GET /api/credit-transactions`까지 체크리스트 순서대로 TDD로 구현·커밋했다. 마지막 항목에서 실제 Testcontainers MySQL로 두 스레드가 동시에 결제하는 테스트를 작성하다가 `REPEATABLE READ`의 스냅샷 문제로 유니크 제약 위반을 발견해 `PaymentService.charge`를 `READ_COMMITTED`로 전환해 해결했다(자세한 내용은 `DECISIONS.md`). 4단계 브랜치(`feature/13`)도 이번 세션 시작 시 병합·삭제했다.
+
+**막힌 부분:** 없음 (동시성 버그는 원인 파악 후 해결).
+
+**다음에 할 일:** `feature/14-...` 브랜치를 master에 병합하고 삭제한 뒤, 사용자 확인을 받아 6단계(구매·보관함·다운로드)를 새 브랜치(`feature/15-...`)로 시작한다. 6단계도 "사용자 행 ID 순서 잠금" 단일 트랜잭션을 요구하므로, 이번에 겪은 `REPEATABLE READ` 재확인 스냅샷 문제(`STATE.md`의 확립된 컨벤션 참조)를 처음부터 반영해서 구현할 것.
+
+---
+
 ## 2026-07-07 — Codex
 
 **무엇을 했나:** 사용자 요청으로 로컬 환경 변수 기준을 정리했다. `backend/.env`에 Docker Compose용 MySQL·MinIO 변수와 Spring Boot 로컬 실행용 datasource·storage·JWT 변수를 섹션별로 추가했다. `local` 프로필은 `${ENV:기본값}` 형태를 유지해 `.env` 로드 없이도 기본 Docker Compose 구성으로 실행 가능하게 두고, `test`는 재현성을 위해 테스트 전용 고정값 유지, `prod`는 환경 변수 필수 주입이라는 정책을 `ARCHITECTURE.md`와 `STATE.md`에 반영했다. `docker compose config --quiet`로 Compose 설정 검증도 통과했다.

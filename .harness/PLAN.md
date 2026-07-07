@@ -13,14 +13,6 @@
 **범위:** Spring Boot REST API, MySQL·MinIO 로컬 환경, 통합 테스트, VibeX SDK 제거 및 React 연동을 포함한다. 외부 실결제, 미디어 변환, 관리자 API, 이메일 인증은 포함하지 않는다.
 **단계:**
 
-#### 5단계: 크레딧과 목업 결제
-
-- [ ] CreditProduct·Payment·CreditTransaction 엔티티와 Repository 구현
-- [ ] 활성 크레딧 상품 조회 API 구현
-- [ ] 서버 가격 기준 목업 결제와 `Idempotency-Key` 재요청 처리 구현
-- [ ] 사용자 잔액·결제·거래 이력 단일 트랜잭션 처리 구현
-- [ ] 크레딧 거래 이력 조회 API와 중복 충전·동시 요청 테스트
-
 #### 6단계: 구매·보관함·다운로드
 
 - [ ] 선행된 Purchase 읽기 엔티티를 구매 도메인 모델로 확장하고 CreatorSettlement 엔티티와 Repository 구현
