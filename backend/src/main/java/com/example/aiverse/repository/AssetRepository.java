@@ -15,6 +15,8 @@ public interface AssetRepository {
 
     Optional<Asset> findPublishedDetailById(Long id);
 
+    Optional<Asset> findPurchasableById(Long id);
+
     Page<Asset> search(AssetSearchCondition condition, Pageable pageable);
 
     boolean existsByObjectKey(String objectKey);

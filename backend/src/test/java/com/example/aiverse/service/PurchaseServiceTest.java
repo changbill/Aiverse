@@ -68,7 +68,7 @@ class PurchaseServiceTest {
         User buyer = user(2L, "buyer@example.com", "구매자", 500);
         Asset asset = asset(10L, creator, 120);
         given(purchaseRepository.findByUserIdAndIdempotencyKey(2L, "idem-1")).willReturn(Optional.empty());
-        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+        given(assetRepository.findPurchasableById(10L)).willReturn(Optional.of(asset));
         given(userRepository.findByIdForUpdate(1L)).willReturn(Optional.of(creator));
         given(userRepository.findByIdForUpdate(2L)).willReturn(Optional.of(buyer));
         given(purchaseRepository.existsByUserIdAndAssetId(2L, 10L)).willReturn(false);
@@ -90,7 +90,7 @@ class PurchaseServiceTest {
         User buyer = user(2L, "buyer2@example.com", "구매자2", 500);
         Asset asset = asset(10L, creator, 100);
         given(purchaseRepository.findByUserIdAndIdempotencyKey(2L, "idem-order")).willReturn(Optional.empty());
-        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+        given(assetRepository.findPurchasableById(10L)).willReturn(Optional.of(asset));
         given(userRepository.findByIdForUpdate(2L)).willReturn(Optional.of(buyer));
         given(userRepository.findByIdForUpdate(5L)).willReturn(Optional.of(creator));
         given(purchaseRepository.existsByUserIdAndAssetId(2L, 10L)).willReturn(false);
@@ -109,7 +109,7 @@ class PurchaseServiceTest {
         User creator = user(1L, "self@example.com", "본인", 500);
         Asset asset = asset(10L, creator, 100);
         given(purchaseRepository.findByUserIdAndIdempotencyKey(1L, "idem-self")).willReturn(Optional.empty());
-        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+        given(assetRepository.findPurchasableById(10L)).willReturn(Optional.of(asset));
 
         assertThatThrownBy(() -> purchaseService.purchase(1L, new PurchaseRequest(10L), "idem-self"))
                 .isInstanceOf(ApplicationException.class)
@@ -124,7 +124,7 @@ class PurchaseServiceTest {
         User buyer = user(2L, "buyer3@example.com", "구매자3", 500);
         Asset asset = asset(10L, creator, 100);
         given(purchaseRepository.findByUserIdAndIdempotencyKey(2L, "idem-dup")).willReturn(Optional.empty());
-        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+        given(assetRepository.findPurchasableById(10L)).willReturn(Optional.of(asset));
         given(userRepository.findByIdForUpdate(1L)).willReturn(Optional.of(creator));
         given(userRepository.findByIdForUpdate(2L)).willReturn(Optional.of(buyer));
         given(purchaseRepository.existsByUserIdAndAssetId(2L, 10L)).willReturn(true);
@@ -142,7 +142,7 @@ class PurchaseServiceTest {
         User buyer = user(2L, "buyer4@example.com", "구매자4", 50);
         Asset asset = asset(10L, creator, 100);
         given(purchaseRepository.findByUserIdAndIdempotencyKey(2L, "idem-poor")).willReturn(Optional.empty());
-        given(assetRepository.findPublishedDetailById(10L)).willReturn(Optional.of(asset));
+        given(assetRepository.findPurchasableById(10L)).willReturn(Optional.of(asset));
         given(userRepository.findByIdForUpdate(1L)).willReturn(Optional.of(creator));
         given(userRepository.findByIdForUpdate(2L)).willReturn(Optional.of(buyer));
         given(purchaseRepository.existsByUserIdAndAssetId(2L, 10L)).willReturn(false);
@@ -157,7 +157,7 @@ class PurchaseServiceTest {
     @Test
     void 존재하지_않는_콘텐츠는_구매할_수_없다() {
         given(purchaseRepository.findByUserIdAndIdempotencyKey(2L, "idem-missing")).willReturn(Optional.empty());
-        given(assetRepository.findPublishedDetailById(999L)).willReturn(Optional.empty());
+        given(assetRepository.findPurchasableById(999L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> purchaseService.purchase(2L, new PurchaseRequest(999L), "idem-missing"))
                 .isInstanceOf(ApplicationException.class)
@@ -180,7 +180,7 @@ class PurchaseServiceTest {
 
         assertThat(response.purchaseId()).isEqualTo(55L);
         assertThat(response.creditBalance()).isEqualTo(400);
-        verify(assetRepository, never()).findPublishedDetailById(any());
+        verify(assetRepository, never()).findPurchasableById(any());
         verify(userRepository, never()).save(any());
     }
 

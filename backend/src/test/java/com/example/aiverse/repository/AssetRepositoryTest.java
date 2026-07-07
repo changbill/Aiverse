@@ -65,6 +65,28 @@ class AssetRepositoryTest extends RepositoryIntegrationTestSupport {
     }
 
     @Test
+    void 구매_가능_여부_조회는_PUBLISHED_상태만_반환한다() {
+        User creator = userRepository.save(User.register("purchasable@example.com", "encoded-password", "구매가능창작자"));
+        Category category = categoryRepository.findById(1L).orElseThrow();
+        Asset asset = assetRepository.save(Asset.register(
+                creator, "구매 가능 콘텐츠", null, AssetType.IMAGE, category,
+                null, "original/purchasable.png", "file.png", "image/png",
+                1000L, 100, null, LicenseType.PERSONAL
+        ));
+
+        assertThat(assetRepository.findPurchasableById(asset.getId()))
+                .isPresent()
+                .get()
+                .extracting(found -> found.getCreator().getId())
+                .isEqualTo(creator.getId());
+
+        asset.softDelete();
+        assetRepository.save(asset);
+
+        assertThat(assetRepository.findPurchasableById(asset.getId())).isEmpty();
+    }
+
+    @Test
     void 소프트_삭제된_콘텐츠는_상세_조회에서_제외된다() {
         User creator = userRepository.save(User.register("deleted-owner@example.com", "encoded-password", "삭제창작자"));
         Category category = categoryRepository.findById(1L).orElseThrow();

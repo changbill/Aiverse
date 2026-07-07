@@ -49,6 +49,11 @@ public class AssetRepositoryImpl implements AssetRepository {
     }
 
     @Override
+    public Optional<Asset> findPurchasableById(Long id) {
+        return assetJpaRepository.findPurchasableById(id, AssetStatus.PUBLISHED);
+    }
+
+    @Override
     public boolean existsByObjectKey(String objectKey) {
         return assetJpaRepository.existsByObjectKey(objectKey);
     }

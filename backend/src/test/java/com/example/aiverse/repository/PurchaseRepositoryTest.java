@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 
 import com.example.aiverse.entity.Asset;
+import com.example.aiverse.entity.AssetStatus;
 import com.example.aiverse.entity.AssetType;
 import com.example.aiverse.entity.Category;
 import com.example.aiverse.entity.CreditTransaction;
@@ -77,6 +78,39 @@ class PurchaseRepositoryTest extends RepositoryIntegrationTestSupport {
 
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent().getFirst().getIdempotencyKey()).isEqualTo("idem-b");
+    }
+
+    @Test
+    void 구매_이후_콘텐츠_가격이_바뀌어도_구매_당시_가격과_라이선스는_그대로_유지된다() {
+        User buyer = userRepository.save(User.register("buyer4@example.com", "encoded-password", "구매자4"));
+        Asset asset = asset(1L);
+        Purchase purchase = purchaseRepository.save(
+                Purchase.of(buyer, asset, creditTransactionId(buyer), "idem-snapshot", asset.getPriceCredit(), asset.getLicenseType())
+        );
+
+        asset.updateBasicInfo(null, null, null, null, 999, null);
+        assetRepository.save(asset);
+
+        Purchase reloaded = purchaseRepository.findByUserIdAndIdempotencyKey(buyer.getId(), "idem-snapshot").orElseThrow();
+        assertThat(reloaded.getPurchasePriceCredit()).isEqualTo(120);
+        assertThat(reloaded.getLicenseType()).isEqualTo(LicenseType.COMMERCIAL);
+        assertThat(assetRepository.findById(asset.getId()).orElseThrow().getPriceCredit()).isEqualTo(999);
+        assertThat(purchase.getPurchasePriceCredit()).isEqualTo(120);
+    }
+
+    @Test
+    void 소프트_삭제된_콘텐츠도_구매_보관함에서는_계속_조회된다() {
+        User buyer = userRepository.save(User.register("buyer5@example.com", "encoded-password", "구매자5"));
+        Asset asset = asset(1L);
+        purchaseRepository.save(Purchase.of(buyer, asset, creditTransactionId(buyer), "idem-deleted", 120, LicenseType.COMMERCIAL));
+
+        asset.softDelete();
+        assetRepository.save(asset);
+
+        var library = purchaseRepository.searchByUserId(buyer.getId(), PageRequest.of(0, 10));
+
+        assertThat(library.getTotalElements()).isEqualTo(1);
+        assertThat(library.getContent().getFirst().getAsset().getStatus()).isEqualTo(AssetStatus.DELETED);
     }
 
     private Asset asset(Long categoryId) {

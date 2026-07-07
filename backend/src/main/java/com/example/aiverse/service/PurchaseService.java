@@ -46,7 +46,10 @@ public class PurchaseService {
             return toReplayResponse(existingPurchase.get());
         }
 
-        Asset asset = assetRepository.findPublishedDetailById(request.assetId())
+        // creator를 fetch join하지 않는 조회를 쓴다 — asset.getCreator()는 미초기화 프록시로 남아
+        // ID만 즉시 반환하고, 세션에 잠기지 않은 User 엔티티가 캐시되어 이후 잠금 조회를
+        // 무력화하는 문제(AssetJpaRepository.findPurchasableById 주석 참조)를 피한다.
+        Asset asset = assetRepository.findPurchasableById(request.assetId())
                 .orElseThrow(() -> new ApplicationException(AssetErrorCode.ASSET_NOT_FOUND));
         Long creatorId = asset.getCreator().getId();
         if (creatorId.equals(buyerId)) {

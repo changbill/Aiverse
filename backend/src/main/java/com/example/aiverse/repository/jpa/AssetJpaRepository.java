@@ -21,6 +21,17 @@ public interface AssetJpaRepository extends JpaRepository<Asset, Long> {
             """)
     Optional<Asset> findByIdAndStatus(@Param("id") Long id, @Param("status") AssetStatus status);
 
+    // creator를 fetch join하지 않는다 — 구매 흐름에서 findByIdForUpdate로 잠그기 전에
+    // creator User가 세션 캐시에 잠기지 않은 채로 올라가면, 이후 잠금 조회가 이미 캐시된
+    // (갱신되지 않은) 인스턴스를 그대로 반환해 잠금 후 최신 값을 읽지 못하는 문제가 생긴다.
+    @Query("""
+            SELECT asset
+            FROM Asset asset
+            WHERE asset.id = :id
+            AND asset.status = :status
+            """)
+    Optional<Asset> findPurchasableById(@Param("id") Long id, @Param("status") AssetStatus status);
+
     @Query("""
             SELECT CASE WHEN COUNT(asset) > 0 THEN TRUE ELSE FALSE END
             FROM Asset asset
