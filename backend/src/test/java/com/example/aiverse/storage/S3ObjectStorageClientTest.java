@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +37,9 @@ class S3ObjectStorageClientTest {
 
     @Mock
     private PresignedPutObjectRequest presignedPutObjectRequest;
+
+    @Mock
+    private PresignedGetObjectRequest presignedGetObjectRequest;
 
     private final StorageProperties storageProperties = new StorageProperties(
             "http://localhost:9000", "us-east-1", "access", "secret", "aiverse-test"
@@ -54,6 +58,17 @@ class S3ObjectStorageClientTest {
         String url = objectStorageClient().generateUploadUrl("tmp/user-1/key.png", "image/png", Duration.ofMinutes(10));
 
         assertThat(url).isEqualTo("https://s3.example.com/upload");
+    }
+
+    @Test
+    void 다운로드용_Presigned_URL을_발급한다() throws Exception {
+        given(s3Presigner.presignGetObject(any(software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest.class)))
+                .willReturn(presignedGetObjectRequest);
+        given(presignedGetObjectRequest.url()).willReturn(URI.create("https://s3.example.com/download").toURL());
+
+        String url = objectStorageClient().generateDownloadUrl("original/key.png", Duration.ofMinutes(5));
+
+        assertThat(url).isEqualTo("https://s3.example.com/download");
     }
 
     @Test

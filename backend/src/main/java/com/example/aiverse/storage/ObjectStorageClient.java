@@ -8,6 +8,8 @@ public interface ObjectStorageClient {
 
     String generateUploadUrl(String objectKey, String contentType, Duration expiry);
 
+    String generateDownloadUrl(String objectKey, Duration expiry);
+
     Optional<ObjectMetadata> headObject(String objectKey);
 
     void deleteObject(String objectKey);
