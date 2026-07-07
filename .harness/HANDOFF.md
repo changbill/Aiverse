@@ -7,6 +7,16 @@
 
 ---
 
+## 2026-07-07 — Claude Code
+
+**무엇을 했나:** `feature/13-파일업로드-콘텐츠관리-구현` 브랜치에서 4단계 전체를 완료했다. `ObjectStorageClient`/`S3ObjectStorageClient`(경로 스타일 접근, Presigned PUT URL)와 `StorageConfig`/`StorageProperties`를 구현하고, `POST /api/files/upload`(형식·용량 검증 후 `tmp/user-{id}/{uuid}/{fileName}` 발급), `POST /api/contents`(HEAD 재검증 포함 등록), `PUT`/`DELETE /api/contents/{id}`(소유자 검증, 판매 후 원본·라이선스 변경 409), 시간마다 도는 `TempObjectCleanupJob`(24시간 지난 미참조 임시 객체 삭제)까지 순서대로 TDD로 구현·커밋했다. 마지막으로 소프트 삭제/`existsByObjectKey`/인증 경계 테스트를 보강했다. 진행 중 Docker Desktop이 꺼져 있어 통합 테스트를 잠시 미루고 단위 테스트로만 검증하다가, 사용자 확인 후 Docker Desktop을 재시작해 `AssetRepositoryTest`·`SecurityFilterChainTest`·`AiverseApplicationTests` 통합 테스트로 최종 검증했다.
+
+**막힌 부분:** 없음 (Docker 재시작으로 해결).
+
+**다음에 할 일:** `feature/13-...` 브랜치를 master에 병합하고 삭제한 뒤, 사용자 확인을 받아 5단계(크레딧과 목업 결제)를 새 브랜치(`feature/14-...`)로 시작한다.
+
+---
+
 ## 2026-07-07 — Cursor
 
 **무엇을 했나:** Repository 통합 테스트를 `@DataJpaTest` 슬라이스(`RepositoryIntegrationTestSupport`)로 분리하고 Testcontainers MySQL `withReuse(true)` + `testcontainers.properties` 재사용을 적용했다. `*RepositoryTest` 6개 클래스를 이전했고, `IntegrationTestSupport`는 앱 기동·Security 테스트만 유지한다. Repository 통합 테스트 전체 약 30초에 통과 확인. 하네스 문서·에이전트 지침에 동기화했다.

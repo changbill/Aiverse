@@ -13,15 +13,6 @@
 **범위:** Spring Boot REST API, MySQL·MinIO 로컬 환경, 통합 테스트, VibeX SDK 제거 및 React 연동을 포함한다. 외부 실결제, 미디어 변환, 관리자 API, 이메일 인증은 포함하지 않는다.
 **단계:**
 
-#### 4단계: 파일 업로드와 콘텐츠 관리
-
-- [ ] S3·MinIO 공통 Object Storage 어댑터와 Presigned URL 구현
-- [ ] 형식·용량 검증 후 사용자별 임시 객체 키를 발급하는 업로드 API 구현
-- [ ] `HEAD` 검증을 포함한 콘텐츠 등록 API 구현
-- [ ] 소유자 전용 콘텐츠 수정·소프트 삭제와 최초 판매 후 변경 제한 구현
-- [ ] 미등록 임시 객체 24시간 정리 작업 구현
-- [ ] 파일 검증·소유권·상태 전이·변경 제한 테스트
-
 #### 5단계: 크레딧과 목업 결제
 
 - [ ] CreditProduct·Payment·CreditTransaction 엔티티와 Repository 구현

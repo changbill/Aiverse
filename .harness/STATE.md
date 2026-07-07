@@ -12,6 +12,7 @@
 - **1단계 백엔드 공통 기반**: Gradle 의존성(Security/JPA/Querydsl/Flyway/JWT/S3/Testcontainers), 프로필, Docker Compose, 공통 응답·오류 처리, Flyway V1·V2, Spring 관리 MySQLContainer와 테스트별 트랜잭션 롤백 기반 `IntegrationTestSupport`까지 전체 완료.
 - **2단계 회원과 인증**: `User`/`RefreshToken` Entity+Repository(3계층), 회원가입·로그인·현재 사용자 조회, Swagger UI(springdoc), Access token 발급과 `SecurityFilterChain`, Refresh token 쿠키·해시 저장·회전·로그아웃, 입력 검증·인증 오류 테스트까지 전체 완료.
 - **3단계 카테고리·태그·콘텐츠 탐색**: `Category`/`Tag`/`Asset`/`AssetTag` Entity+Repository(3계층), `GET /api/categories`·`GET /api/tags`, Querydsl 콘텐츠 검색·필터·정렬(`LATEST`/`POPULAR`/`PRICE_ASC`/`PRICE_DESC`)·페이지네이션, `GET /api/contents` 목록과 `GET /api/contents/{id}` 상세+`view_count` 증가, 비활성 카테고리 제외·태그 정규화·정렬 통합 테스트까지 전체 완료.
+- **4단계 파일 업로드와 콘텐츠 관리**: S3/MinIO `ObjectStorageClient`(Presigned URL 발급)와 `POST /api/files/upload`(형식·용량 검증 후 사용자별 임시 객체 키 발급), `HEAD` 재검증을 포함한 `POST /api/contents` 등록, 소유자 전용 `PUT`/`DELETE /api/contents/{id}`(최초 판매 후 원본·라이선스 변경 409), 미등록 임시 객체 24시간 정리 스케줄러, 관련 경계 테스트까지 전체 완료.
 
 ## 확립된 컨벤션 (요약 — 근거·배경은 `DECISIONS.md` 참조)
 
@@ -27,4 +28,4 @@
 
 ## 다음 단계
 
-4단계 파일 업로드와 콘텐츠 관리 → ... 9단계 전체 검증과 문서화 순 (자세한 내용은 `PLAN.md` 참조).
+5단계 크레딧과 목업 결제 → ... 9단계 전체 검증과 문서화 순 (자세한 내용은 `PLAN.md` 참조).
