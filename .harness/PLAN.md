@@ -7,16 +7,7 @@
 
 ## 현재 계획
 
-### 미니PC + Cloudflare Tunnel + Vercel 운영 배포 — (확정)
-
-**배경:** 미니PC에 백엔드(API+MySQL+MinIO)를 `docker compose up -d`로 띄우고 Cloudflare Tunnel로 공개 도메인을 연결해, Vercel에 이미 배포된 프론트엔드(`https://aiverse-blue.vercel.app`)가 실제로 통신할 수 있게 한다. Cloudflare Tunnel 라우트 3개가 준비되어 있다: `aiverse.changee.cloud`→`localhost:9999`(백엔드 API), `aiverse-storage.changee.cloud`→`localhost:9998`(MinIO S3 API), `aiverse-storage-admin.changee.cloud`→`localhost:9001`(MinIO 관리 콘솔). (다단계 서브도메인 `aiverse.storage.*`/`aiverse.storage.admin.*`은 Cloudflare 기본 Universal SSL 와일드카드 인증서가 한 단계까지만 커버해 TLS 핸드셰이크가 실패하는 문제를 겪어, 한 단계짜리 하이픈 서브도메인으로 변경했다 — `DECISIONS.md` 참조.)
-**범위:** 백엔드 앱 컨테이너화, docker-compose 포트/서비스 구성, 운영용 환경변수 정리(새 MinIO 자격증명 발급 포함), 미니PC 배포, 배포 환경 전체 흐름 검증까지 포함한다. Cloudflare Tunnel 설치·라우트 설정과 Vercel 프로젝트 생성·배포는 사용자가 이미 완료했으므로 포함하지 않는다(단, Vercel의 `VITE_API_URL` 환경변수 확인/안내는 포함). CI/CD 자동화는 포함하지 않는다(수동 배포).
-**단계:**
-
-- [ ] 미니PC에 배포(`git pull` + `docker compose up -d --build`)하고 Cloudflare Tunnel 세 라우트가 외부에서 정상 응답하는지 확인
-- [ ] Vercel 프로젝트의 `VITE_API_URL=https://aiverse.changee.cloud` 환경변수 설정 확인 안내
-- [ ] `https://aiverse-blue.vercel.app`에서 회원가입→업로드→충전→구매→다운로드→대시보드 전체 흐름을 브라우저로 검증
-      **영향받는 영역:** 둘 다
+_(없음 — 미니PC + Cloudflare Tunnel + Vercel 운영 배포 완료. 결과는 `STATE.md` 참조)_
 
 ## 계획 작성 형식
 

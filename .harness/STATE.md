@@ -4,9 +4,9 @@
 > 세션별 서술(무엇을 했고 무엇이 막혔는지)은 `HANDOFF.md`에, 결정과 이유는 `DECISIONS.md`에 남긴다 — 여기에 다시 옮기지 않는다.
 > 단계가 끝나면 그 단계를 한 줄로 갱신한다. 이슈/커밋 단위로 로그를 쌓지 않는다.
 
-**마지막 갱신:** 2026-07-08
+**마지막 갱신:** 2026-07-09
 
-**AIverse MVP 구현 로드맵 9단계 전체 완료.**
+**AIverse MVP 구현 로드맵 9단계 전체 완료 + 미니PC 운영 배포 완료.**
 
 ## 완료된 단계
 
@@ -20,6 +20,7 @@
 - **7단계 창작자 대시보드**: `GET /api/dashboard/sales`(`period=7D`/`30D`/`ALL`), `CreatorSettlement` 기준 Querydsl 집계로 등록 콘텐츠 수·누적 판매 횟수·크레딧(`totals`), 판매 없는 날짜를 0으로 채운 일자별 추이(`series`, `ALL`은 실제 판매일만), 판매량 상위 5개(동률 시 최신 콘텐츠 우선, `items`)까지 전체 완료. 다른 창작자 데이터 미혼입·기간 경계(정각 포함/직전 제외) 테스트 포함.
 - **8단계 프론트엔드 REST API 전환**: (사전 준비로 `PUT /api/auth/me` 백엔드 엔드포인트 TDD 구현 포함) `VITE_API_URL` 기반 `httpClient`(공통 응답/오류 파싱, 401 시 재발급 훅)와 `authApi`/`contentApi`/`categoryApi`/`fileApi`/`creditApi`/`purchaseApi`/`dashboardApi` 도입, 메모리 Access token+Refresh 쿠키 재발급 기반 세션 복원(`useAppStore.restoreSession`)으로 통합해 기존 미사용 `AuthContext`/`AuthProvider`/`useAuth` 제거, Login·Register·Profile·Home·Explore·ContentDetail(`/content/:slug`→`/content/:id`)·Upload(Presigned 업로드+콘텐츠 등록)·Credits·Library·Dashboard(recharts 추이 차트) 전 페이지를 실제 백엔드 API로 교체, VibeX SDK(`src/sdk`, `src/api/{entities,vibexClient,integrations}.js`, `@vibexnpm/talkflow`)와 클라이언트가 직접 계산하던 mock 크레딧/구매/집계 로직 제거까지 전체 완료. (VibeX iframe 비주얼 에디터 개발 도구는 API 통신과 무관해 이번 범위에서 제외 — `BACKLOG.md` 참조)
 - **9단계 전체 검증과 문서화**: 백엔드 `./gradlew test`(단위)·`./gradlew integrationTest`(Testcontainers MySQL 전체 통합)·`./gradlew build` 전체 통과, 프론트엔드 `npm run build` 프로덕션 빌드 성공까지 확인. Docker Compose(MySQL+MinIO) 환경에 로컬 프로필로 백엔드를 직접 기동해 회원가입→로그인→Presigned 업로드(커버+원본)→콘텐츠 등록→크레딧 충전→구매(80/20 정산)→보관함 조회→다운로드(원본 파일 바이트 일치 확인)→창작자 대시보드(판매 집계 반영 확인)까지 실제 API 호출로 전체 흐름을 검증했다(이 환경에 브라우저 도구가 없어 React UI 클릭 대신 curl 기반 API 흐름으로 검증 — `BACKLOG.md` 참조). 코드 수정 없이 전체 통과.
+- **미니PC + Cloudflare Tunnel + Vercel 운영 배포**: 백엔드 `Dockerfile`(멀티스테이지)과 `docker-compose.yml`의 `app` 서비스로 미니PC에서 `docker compose up -d --build` 한 번에 MySQL+MinIO+API 기동. Cloudflare Tunnel 라우트 3개(API `9999`, MinIO S3 API `9998`, MinIO 콘솔 `9001`)를 공개 도메인에 연결하고 Vercel에 배포된 프론트엔드(`https://aiverse-blue.vercel.app`)와 CORS·Refresh 쿠키(`SameSite=None`)까지 연동 확인. `StorageProperties`/`StorageConfig`에 백엔드 내부용 `endpoint`(도커 네트워크)와 브라우저 노출용 `publicEndpoint`(Presigned URL)를 분리해 서버 자신의 HEAD 재검증이 프록시를 거치며 실패하던 문제를 해결. 실제 운영 도메인(`https://aiverse.changee.cloud`)으로 회원가입→업로드→충전→구매→다운로드→대시보드 전체 흐름을 curl로 검증 완료(브라우저 클릭 검증은 미수행 — `BACKLOG.md` 참조).
 
 ## 확립된 컨벤션 (요약 — 근거·배경은 `DECISIONS.md` 참조)
 
@@ -39,4 +40,4 @@
 
 ## 다음 단계
 
-AIverse MVP 구현 로드맵 9단계 전체 완료. 다음 계획은 미정 — 새 요청 시 `PLAN.md`에 초안 작성 후 진행 (`BACKLOG.md`의 기술 부채·향후 아이디어 참조).
+AIverse MVP 구현 로드맵 9단계와 미니PC 운영 배포까지 전체 완료. 다음 계획은 미정 — 새 요청 시 `PLAN.md`에 초안 작성 후 진행 (`BACKLOG.md`의 기술 부채·향후 아이디어 참조).

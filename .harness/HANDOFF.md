@@ -7,6 +7,16 @@
 
 ---
 
+## 2026-07-09 — Claude Code (미니PC 운영 배포)
+
+**무엇을 했나:** `feature/19-미니pc-운영배포-구현` 브랜치에서 사용자의 미니PC + Cloudflare Tunnel + Vercel 운영 배포를 진행했다. 백엔드 멀티스테이지 `Dockerfile`과 `docker-compose.yml`의 `app` 서비스(포트 9999)를 추가하고, MySQL/MinIO 호스트 포트를 3307/9998로 재조정했다(3306 충돌 회피, Cloudflare 라우트와 정합). 진행 중 세 가지 실제 배포 버그를 발견해 고쳤다: (1) `SecurityConfig`에 CORS 설정 자체가 없어 브라우저 호출이 전부 차단되던 문제(`app.cors.allowed-origins` + `CorsConfigurationSource` 추가, TDD로 preflight 허용/거부 테스트 작성), (2) `backend/gradlew`이 git에 실행 비트 없이(100644) 커밋되어 있어 미니PC(Linux) Docker 빌드가 "Permission denied"로 실패하던 문제(실행 비트 복구 + Dockerfile에 `chmod +x` 방어 추가), (3) Cloudflare의 다단계 서브도메인(`aiverse.storage.*`, `aiverse.storage.admin.*`)이 Universal SSL 와일드카드 인증서 범위(한 단계까지만) 밖이라 TLS 핸드셰이크가 실패하던 문제(한 단계 하이픈 서브도메인으로 라우트 재생성), (4) 백엔드 내부 S3Client가 브라우저용 Presigned URL과 동일한 공개 Cloudflare 엔드포인트로 MinIO에 접근해 콘텐츠 등록 시 HEAD 재검증이 403으로 실패하던 문제(`StorageProperties`/`StorageConfig`에 내부용 `endpoint`와 공개용 `publicEndpoint` 분리). 모든 수정 후 실제 운영 도메인(`https://aiverse.changee.cloud`)에서 회원가입→로그인→Presigned 업로드→콘텐츠 등록→크레딧 충전→구매→보관함→다운로드→대시보드 전체 흐름을 curl로 검증했고, 다운로드 파일이 업로드 원본과 바이트 단위로 일치함과 80/20 정산 집계까지 확인했다. Vercel에 이미 배포된 프론트엔드(`https://aiverse-blue.vercel.app`)의 빌드 번들에서 `VITE_API_URL`이 올바르게 반영된 것도 직접 확인했다.
+
+**막힌 부분:** 없음(네 가지 배포 버그 모두 원인 파악 후 해결). 다만 이 세션에도 브라우저 도구가 없어 curl 기반 API 검증으로 대체했다 — `https://aiverse-blue.vercel.app`에서 실제 브라우저 클릭 검증은 아직 안 됐다(`BACKLOG.md` 참조).
+
+**다음에 할 일:** `feature/19-...` 브랜치를 master에 병합할지 사용자 확인 필요(이 세션 안에서는 아직 병합하지 않았다). 이후 특별한 다음 계획은 없음 — 새 요청 시 `PLAN.md`에 초안부터 작성. 여유가 있으면 `BACKLOG.md`의 "9단계/운영 배포 브라우저 미검증" 항목을 실제 브라우저로 한 번 확인해보는 것을 권장.
+
+---
+
 ## 2026-07-08 — Claude Code (9단계)
 
 **무엇을 했나:** 9단계(전체 검증과 문서화)를 진행해 AIverse MVP 구현 로드맵 전체(1~9단계)를 완료했다. `./gradlew test`(단위), `./gradlew integrationTest`(Testcontainers MySQL 전체 통합), `./gradlew build` 모두 통과했고 `npm run build`(프론트엔드 프로덕션 빌드)도 성공했다. 이어서 `backend/docker-compose.yml`로 MySQL+MinIO를 띄우고 `local` 프로필로 백엔드를 직접 기동한 뒤, 회원가입→로그인→Presigned 업로드(커버+원본)→콘텐츠 등록→크레딧 충전→구매→보관함 조회→다운로드→창작자 대시보드까지 전체 흐름을 curl로 직접 호출해 검증했다. 다운로드된 파일이 업로드한 원본과 바이트 단위로 일치함을 `diff`로 확인했고, 대시보드 집계(80/20 정산)도 정확히 반영됨을 확인했다. 코드 수정이 필요한 문제는 발견되지 않아 소스 변경 없이 완료했다. `PLAN.md`에서 완료된 MVP 로드맵 전체를 제거하고, `STATE.md`에 9단계 완료 요약을 추가했으며, `BACKLOG.md`에 "이 환경에 브라우저 도구가 없어 실제 UI 클릭 검증은 못 하고 API 호출로 대체했다"는 알려진 이슈를 기록했다.
