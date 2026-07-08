@@ -13,8 +13,6 @@
 **범위:** 백엔드 앱 컨테이너화, docker-compose 포트/서비스 구성, 운영용 환경변수 정리(새 MinIO 자격증명 발급 포함), 미니PC 배포, 배포 환경 전체 흐름 검증까지 포함한다. Cloudflare Tunnel 설치·라우트 설정과 Vercel 프로젝트 생성·배포는 사용자가 이미 완료했으므로 포함하지 않는다(단, Vercel의 `VITE_API_URL` 환경변수 확인/안내는 포함). CI/CD 자동화는 포함하지 않는다(수동 배포).
 **단계:**
 
-- [ ] 운영용 환경변수 정리 — `SPRING_PROFILES_ACTIVE=prod`, 새 `JWT_SECRET_KEY`(로컬 개발용과 분리), `STORAGE_ENDPOINT=https://aiverse.storage.changee.cloud`, 새로 발급한 운영용 `STORAGE_ACCESS_KEY`/`SECRET_KEY`, `CORS_ALLOWED_ORIGINS=https://aiverse-blue.vercel.app`
-      **영향받는 영역:** backend
 - [ ] 미니PC에 배포(`git pull` + `docker compose up -d --build`)하고 Cloudflare Tunnel 세 라우트가 외부에서 정상 응답하는지 확인
 - [ ] Vercel 프로젝트의 `VITE_API_URL=https://aiverse.changee.cloud` 환경변수 설정 확인 안내
 - [ ] `https://aiverse-blue.vercel.app`에서 회원가입→업로드→충전→구매→다운로드→대시보드 전체 흐름을 브라우저로 검증
