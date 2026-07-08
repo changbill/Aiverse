@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, User as UserIcon, Eye, EyeOff, Loader2, Check } from 'lucide-react';
-import { Auth } from '@/api/entities';
+import { authApi } from '@/api/authApi';
 import { useAppStore } from '@/stores/useAppStore';
 const LOGO = 'https://cdn.vibe-x.app/apps/850e38c8961e5c6070a133d5/assets/original/logo-0-67018.png';
 const validatePassword = (pw) => {
@@ -12,7 +12,7 @@ const validatePassword = (pw) => {
 };
 export default function Register() {
   const navigate = useNavigate();
-  const loginUser = useAppStore((s) => s.loginUser);
+  const setSession = useAppStore((s) => s.setSession);
   const [form, setForm] = useState({ name: '', email: '', password: '', passwordConfirm: '' });
   const [touched, setTouched] = useState({});
   const [showPw, setShowPw] = useState(false);
@@ -22,7 +22,7 @@ export default function Register() {
   const markTouched = (key) => setTouched((t) => ({ ...t, [key]: true }));
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
   const errors = {
-    name: form.name.trim().length < 2 ? '이름을 2자 이상 입력해주세요' : null,
+    name: form.name.trim().length < 2 || form.name.trim().length > 20 ? '이름을 2자 이상 20자 이하로 입력해주세요' : null,
     email: !emailValid ? '올바른 이메일 형식이 아닙니다' : null,
     password: validatePassword(form.password),
     passwordConfirm: form.password !== form.passwordConfirm ? '비밀번호가 일치하지 않습니다' : null,
@@ -35,17 +35,14 @@ export default function Register() {
     setLoading(true);
     setServerError('');
     try {
-      await Auth.register({ email: form.email, password: form.password, name: form.name });
+      await authApi.register({ email: form.email, password: form.password, nickname: form.name });
       // auto-login
-      const res = await Auth.login({ email: form.email, password: form.password });
-      const data = res.data.data;
-      localStorage.setItem('access_token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      loginUser(data.user);
+      const { data } = await authApi.login({ email: form.email, password: form.password });
+      setSession(data.accessToken, data.user);
       navigate('/');
     } catch (err) {
       console.error(err);
-      setServerError('회원가입에 실패했습니다. 이미 사용 중인 이메일일 수 있어요.');
+      setServerError(err.message || '회원가입에 실패했습니다. 이미 사용 중인 이메일일 수 있어요.');
     } finally {
       setLoading(false);
     }

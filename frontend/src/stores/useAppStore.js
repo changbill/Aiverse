@@ -30,21 +30,17 @@ export const useAppStore = create(
           };
         }),
       clearSession: () => set({ accessToken: null, user: null, userId: null, isAuthReady: true }),
-      loginUser: (user) =>
-        set((state) => {
-          const sameUser = state.userId === user.id;
-          return {
-            user,
-            userId: user.id,
-            credits: sameUser ? state.credits : (Number(user.credits) || 1000),
-            purchases: sameUser ? state.purchases : [],
-            myUploads: sameUser ? state.myUploads : [],
-            transactions: sameUser ? state.transactions : [],
-          };
-        }),
       updateUser: (patch) =>
         set((state) => ({ user: state.user ? { ...state.user, ...patch } : state.user })),
-      logout: () => set({ user: null }),
+      logout: async () => {
+        try {
+          await authApi.logout();
+        } catch (e) {
+          console.error(e);
+        } finally {
+          get().clearSession();
+        }
+      },
       addCredits: (amount, label) =>
         set((state) => {
           const balance = state.credits + amount;

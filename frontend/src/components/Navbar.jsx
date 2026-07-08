@@ -21,13 +21,6 @@ export default function Navbar() {
   }, [location.pathname]);
   const handleLogout = () => {
     logout();
-    try {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-    } catch (e) {
-      console.error(e);
-    }
     navigate('/');
   };
   return (
@@ -68,8 +61,8 @@ export default function Navbar() {
                 </Link>
                 <Link to="/Profile" className="flex items-center">
                   <img
-                    src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
-                    alt={user.name}
+                    src={user.profileUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nickname}`}
+                    alt={user.nickname}
                     className="w-9 h-9 rounded-full border border-white/20 object-cover bg-white/10"
                   />
                 </Link>
@@ -114,12 +107,12 @@ export default function Navbar() {
               <div className="flex items-center justify-between px-3 py-3 mb-2 rounded-xl bg-white/5">
                 <div className="flex items-center gap-3">
                   <img
-                    src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
-                    alt={user.name}
+                    src={user.profileUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nickname}`}
+                    alt={user.nickname}
                     className="w-10 h-10 rounded-full object-cover bg-white/10"
                   />
                   <div>
-                    <p className="text-sm font-semibold text-white">{user.name}</p>
+                    <p className="text-sm font-semibold text-white">{user.nickname}</p>
                     <p className="text-xs text-cyan-300 flex items-center gap-1">
                       <Zap className="w-3 h-3" /> {credits.toLocaleString('ko-KR')} 크레딧
                     </p>

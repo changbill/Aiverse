@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  User as UserIcon, Zap, Package, BarChart, CreditCard, LogOut, Loader2, Check, Camera,
+  Zap, Package, BarChart, CreditCard, LogOut, Loader2, Check,
 } from 'lucide-react';
-import { Auth } from '@/api/entities';
-import { vibex } from '@/api/vibexClient';
+import { authApi } from '@/api/authApi';
 import { useAppStore } from '@/stores/useAppStore';
 export default function Profile() {
   const navigate = useNavigate();
@@ -13,65 +12,37 @@ export default function Profile() {
   const purchases = useAppStore((s) => s.purchases);
   const updateUser = useAppStore((s) => s.updateUser);
   const logout = useAppStore((s) => s.logout);
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
-  const [avatar, setAvatar] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [introduction, setIntroduction] = useState('');
+  const [profileUrl, setProfileUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState(null);
+  const [error, setError] = useState('');
   useEffect(() => {
     if (!user) {
       navigate('/Login', { replace: true });
       return;
     }
-    setName(user.name || '');
-    setBio(user.bio || '');
-    setAvatar(user.avatar || '');
+    setNickname(user.nickname || '');
+    setIntroduction(user.introduction || '');
+    setProfileUrl(user.profileUrl || '');
   }, [user, navigate]);
   if (!user) return null;
   const handleLogout = () => {
     logout();
-    try {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-    } catch (e) {
-      console.error(e);
-    }
     navigate('/');
-  };
-  const onAvatarChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const result = await vibex.integrations.Core.UploadFile({ file, folder: 'images' });
-      const url = result?.data?.file_url;
-      if (url) setAvatar(url);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setUploading(false);
-    }
   };
   const handleSave = async () => {
     setSaving(true);
     setNotice(null);
+    setError('');
     try {
-      await Auth.updateProfile({ name, avatar, bio });
-      updateUser({ name, avatar, bio });
-      try {
-        const stored = JSON.parse(localStorage.getItem('user') || '{}');
-        localStorage.setItem('user', JSON.stringify({ ...stored, name, avatar, bio }));
-      } catch (e) {
-        console.error(e);
-      }
+      const { data } = await authApi.updateMe({ nickname, profileUrl, introduction });
+      updateUser({ nickname: data.nickname, profileUrl: data.profileUrl, introduction: data.introduction });
       setNotice({ type: 'success', message: '프로필이 저장되었습니다.' });
     } catch (err) {
       console.error(err);
-      // still reflect locally for demo
-      updateUser({ name, avatar, bio });
-      setNotice({ type: 'success', message: '프로필이 저장되었습니다.' });
+      setError(err.message || '프로필 저장에 실패했습니다.');
     } finally {
       setSaving(false);
     }
@@ -90,12 +61,12 @@ export default function Profile() {
           <div className="absolute -top-16 -right-10 w-64 h-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
           <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6">
             <img
-              src={avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
-              alt={user.name}
+              src={profileUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nickname}`}
+              alt={user.nickname}
               className="w-24 h-24 rounded-full border-4 border-white/20 object-cover bg-white/10"
             />
             <div className="text-center sm:text-left">
-              <h1 className="font-display text-2xl font-bold">{user.name}</h1>
+              <h1 className="font-display text-2xl font-bold">{user.nickname}</h1>
               <p className="text-violet-100/70">{user.email}</p>
               <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/15">
                 <Zap className="w-4 h-4 text-cyan-300" />
@@ -124,26 +95,30 @@ export default function Profile() {
               {notice.message}
             </div>
           )}
+          {error && (
+            <div className="mt-4 p-3 rounded-xl text-sm font-medium bg-red-50 text-red-700 border border-red-200">
+              {error}
+            </div>
+          )}
           <div className="mt-6 flex items-center gap-4">
             <img
-              src={avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
-              alt="avatar"
+              src={profileUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nickname}`}
+              alt="profile"
               className="w-16 h-16 rounded-full object-cover bg-violet-50"
             />
-            <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-50 text-[#6D28D9] text-sm font-semibold cursor-pointer hover:bg-violet-100 transition-colors">
-              {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-              사진 변경
-              <input type="file" accept="image/*" className="hidden" onChange={onAvatarChange} disabled={uploading} />
-            </label>
           </div>
           <div className="mt-6 space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">이름</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="이름" />
+              <label className="block text-sm font-semibold text-slate-700 mb-2">닉네임</label>
+              <input value={nickname} onChange={(e) => setNickname(e.target.value)} className={inputCls} placeholder="닉네임" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">프로필 이미지 URL</label>
+              <input value={profileUrl} onChange={(e) => setProfileUrl(e.target.value)} className={inputCls} placeholder="https://example.com/profile.png" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">소개</label>
-              <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} className={`${inputCls} resize-none`} placeholder="창작자 소개를 입력하세요" />
+              <textarea value={introduction} onChange={(e) => setIntroduction(e.target.value)} rows={3} className={`${inputCls} resize-none`} placeholder="창작자 소개를 입력하세요" />
             </div>
           </div>
           <div className="mt-6 flex flex-col sm:flex-row gap-3">

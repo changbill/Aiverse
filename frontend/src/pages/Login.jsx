@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
-import { Auth } from '@/api/entities';
+import { authApi } from '@/api/authApi';
 import { useAppStore } from '@/stores/useAppStore';
 const LOGO = 'https://cdn.vibe-x.app/apps/850e38c8961e5c6070a133d5/assets/original/logo-0-67018.png';
 export default function Login() {
   const navigate = useNavigate();
-  const loginUser = useAppStore((s) => s.loginUser);
+  const setSession = useAppStore((s) => s.setSession);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -20,17 +20,12 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const res = await Auth.login({ email, password });
-      const data = res.data.data;
-      const user = data.user;
-      const token = data.token;
-      localStorage.setItem('access_token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      loginUser(user);
+      const { data } = await authApi.login({ email, password });
+      setSession(data.accessToken, data.user);
       navigate('/');
     } catch (err) {
       console.error(err);
-      setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      setError(err.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
     } finally {
       setLoading(false);
     }
