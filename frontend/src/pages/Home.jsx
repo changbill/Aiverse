@@ -5,7 +5,7 @@ import {
   Image, Video, Music, ArrowRight, Search, CreditCard, Package, Upload as UploadIcon,
   Star, Zap, TrendingUp, Award, Check,
 } from 'lucide-react';
-import { Content } from '@/api/entities';
+import { contentApi } from '@/api/contentApi';
 import ContentCard from '@/components/ContentCard';
 import Reveal from '@/components/Reveal';
 const HERO = 'https://cdn.vibe-x.app/apps/850e38c8961e5c6070a133d5/assets/original/hero-1-67018.png';
@@ -41,8 +41,8 @@ export default function Home() {
     (async () => {
       setLoading(true);
       try {
-        const res = await Content.paging({ page: 1, limit: 6, filter: { search: '' }, sort: '-views' });
-        setTrending(res.data.data || []);
+        const res = await contentApi.list({ page: 1, limit: 6, sort: '-views' });
+        setTrending(res.items);
       } catch (e) {
         console.error(e);
       } finally {

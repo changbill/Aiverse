@@ -75,7 +75,7 @@ export default function Library() {
               const Icon = meta.Icon;
               return (
                 <div key={item.contentId} className="bg-white rounded-2xl border border-violet-100 p-4 flex flex-col sm:flex-row gap-4 hover:shadow-lg hover:shadow-violet-100/50 transition-shadow">
-                  <Link to={`/content/${item.slug}`} className="relative w-full sm:w-40 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100">
+                  <Link to={`/content/${item.contentId}`} className="relative w-full sm:w-40 h-32 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100">
                     {item.thumbnail ? (
                       <img src={item.thumbnail} alt={item.title} className="w-full h-full object-cover" />
                     ) : (
@@ -89,7 +89,7 @@ export default function Library() {
                   </Link>
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
-                      <Link to={`/content/${item.slug}`} className="font-display font-bold text-slate-900 hover:text-[#6D28D9] transition-colors">
+                      <Link to={`/content/${item.contentId}`} className="font-display font-bold text-slate-900 hover:text-[#6D28D9] transition-colors">
                         {item.title}
                       </Link>
                       <p className="text-sm text-slate-500 mt-0.5">{item.creatorName}</p>

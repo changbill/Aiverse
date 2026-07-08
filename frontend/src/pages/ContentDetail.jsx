@@ -4,7 +4,7 @@ import {
   Image, Video, Music, Eye, Heart, ArrowLeft, Check, Zap, CreditCard, Package,
   Award, Info, Loader2, User as UserIcon,
 } from 'lucide-react';
-import { Content } from '@/api/entities';
+import { contentApi } from '@/api/contentApi';
 import { useAppStore } from '@/stores/useAppStore';
 import ContentCard from '@/components/ContentCard';
 import confetti from 'canvas-confetti';
@@ -14,7 +14,7 @@ const typeMeta = {
   music: { label: '음악', Icon: Music },
 };
 export default function ContentDetail() {
-  const { slug } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [content, setContent] = useState(null);
   const [related, setRelated] = useState([]);
@@ -30,12 +30,11 @@ export default function ContentDetail() {
     (async () => {
       setLoading(true);
       try {
-        const res = await Content.get(slug);
-        const c = res.data;
+        const c = await contentApi.get(id);
         setContent(c);
         if (c?.categoryId) {
-          const rel = await Content.paging({ page: 1, limit: 4, filter: { search: '', categoryId: c.categoryId } });
-          setRelated((rel.data.data || []).filter((x) => x.id !== c.id).slice(0, 3));
+          const rel = await contentApi.list({ page: 1, limit: 4, categoryId: c.categoryId });
+          setRelated(rel.items.filter((x) => x.id !== c.id).slice(0, 3));
         }
       } catch (e) {
         console.error(e);
@@ -43,7 +42,7 @@ export default function ContentDetail() {
         setLoading(false);
       }
     })();
-  }, [slug]);
+  }, [id]);
   const purchased = content ? isPurchased(content.id) : false;
   const handlePurchase = () => {
     if (!user) {

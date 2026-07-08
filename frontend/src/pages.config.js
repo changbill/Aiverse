@@ -12,7 +12,7 @@ import Register from './pages/Register.jsx';
 export const PAGES = {
   Home,
   Explore,
-  'content/:slug': ContentDetail,
+  'content/:id': ContentDetail,
   Credits,
   Upload,
   Library,

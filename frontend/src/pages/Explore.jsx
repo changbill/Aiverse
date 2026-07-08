@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, SortAsc, Grid, Image, Video, Music, Loader2 } from 'lucide-react';
-import { Content, Category } from '@/api/entities';
+import { contentApi } from '@/api/contentApi';
+import { categoryApi } from '@/api/categoryApi';
 import ContentCard from '@/components/ContentCard';
 const typeTabs = [
   { value: 'all', label: '전체', Icon: Grid },
@@ -32,8 +33,8 @@ export default function Explore() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await Category.paging({ page: 1, limit: 50, filter: { search: '' } });
-        setCategories(res.data.data || []);
+        const res = await categoryApi.list();
+        setCategories(res);
       } catch (e) {
         console.error(e);
       }
@@ -48,10 +49,9 @@ export default function Explore() {
   const fetchData = async (pageNum, reset = false) => {
     setLoading(true);
     try {
-      const res = await Content.paging({ page: pageNum, limit: 12, filter: buildFilter(), sort });
-      const data = res.data.data || [];
-      setItems((prev) => (reset ? data : [...prev, ...data]));
-      setHasMore(pageNum < res.data.totalPages);
+      const res = await contentApi.list({ page: pageNum, limit: 12, ...buildFilter(), sort });
+      setItems((prev) => (reset ? res.items : [...prev, ...res.items]));
+      setHasMore(pageNum < res.page.totalPages);
       setPage(pageNum);
     } catch (e) {
       console.error(e);

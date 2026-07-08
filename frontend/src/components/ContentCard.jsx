@@ -10,7 +10,7 @@ export default function ContentCard({ content }) {
   const Icon = meta.Icon;
   return (
     <Link
-      to={`/content/${content.slug}`}
+      to={`/content/${content.id}`}
       className="group block bg-white rounded-2xl border border-violet-100 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-violet-200/50 hover:scale-[1.02]"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">

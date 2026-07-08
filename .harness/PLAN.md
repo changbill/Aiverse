@@ -15,7 +15,6 @@
 
 #### 8단계: 프론트엔드 REST API 전환
 
-- [ ] Home·Explore·ContentDetail을 콘텐츠·카테고리·태그 API에 연동
 - [ ] Upload를 Presigned 업로드와 콘텐츠 등록 흐름에 연동
 - [ ] Credits를 상품·결제·거래 이력 API에 연동
 - [ ] Library·다운로드·구매 흐름을 Purchase API에 연동
