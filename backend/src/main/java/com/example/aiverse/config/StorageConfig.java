@@ -25,10 +25,12 @@ public class StorageConfig {
                 .build();
     }
 
+    // Presigned URL은 브라우저가 직접 접근하므로 백엔드-MinIO 내부 통신용 endpoint()가 아니라
+    // 외부에 공개된 publicEndpoint()로 서명해야 한다.
     @Bean
     public S3Presigner s3Presigner(StorageProperties properties) {
         return S3Presigner.builder()
-                .endpointOverride(URI.create(properties.endpoint()))
+                .endpointOverride(URI.create(properties.publicEndpoint()))
                 .region(Region.of(properties.region()))
                 .credentialsProvider(credentialsProvider(properties))
                 .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())

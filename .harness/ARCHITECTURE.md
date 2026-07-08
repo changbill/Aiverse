@@ -345,7 +345,8 @@ spring:
 | `SPRING_DATASOURCE_URL`      | MySQL JDBC URL |
 | `SPRING_DATASOURCE_USERNAME` | DB 사용자      |
 | `SPRING_DATASOURCE_PASSWORD` | DB 비밀번호    |
-| `STORAGE_ENDPOINT`           | S3 또는 MinIO API endpoint |
+| `STORAGE_ENDPOINT`           | 백엔드가 내부적으로 MinIO/S3에 접근하는 endpoint (HEAD·목록·삭제 등 서버-스토리지 통신용) |
+| `STORAGE_PUBLIC_ENDPOINT`    | Presigned URL에 찍혀 브라우저가 직접 접근하는 공개 endpoint |
 | `STORAGE_REGION`             | S3 region |
 | `STORAGE_ACCESS_KEY`         | S3 또는 MinIO access key |
 | `STORAGE_SECRET_KEY`         | S3 또는 MinIO secret key |
@@ -355,7 +356,7 @@ spring:
 
 로컬 개발에서는 `backend/.env`에 Docker Compose 변수와 Spring Boot 로컬 실행 변수를 함께 정리한다. `application-local.yaml`은 `${ENV:로컬기본값}` 형태를 유지해 `.env`를 로드하지 않아도 기본 Docker Compose 구성으로 바로 실행할 수 있게 한다. `application-test.yaml`은 외부 환경 변수에 의존하지 않는 테스트 전용 고정값을 사용하고, `application-prod.yaml`은 기본값 없이 환경 변수 주입을 필수로 한다.
 
-**운영 배포(`docker compose up -d`, 예: 미니PC + Cloudflare Tunnel):** `backend/docker-compose.yml`의 `app` 서비스가 `Dockerfile`로 빌드된 백엔드 컨테이너를 `9999:8080`으로 노출한다. MinIO는 S3 API를 `9998:9000`(내부 `mysql`/`minio` 서비스명으로 앱 컨테이너와 통신)으로, 관리 콘솔은 `9001:9001`로 노출한다. `STORAGE_ENDPOINT`는 앱 컨테이너와 브라우저가 동일하게 사용하므로 내부 Docker 네트워크 주소가 아니라 MinIO를 외부에 노출한 공개 URL(Presigned URL이 이 주소로 발급됨)을 그대로 지정해야 한다. `.env`의 `SPRING_PROFILES_ACTIVE=prod`로 전환하고, `JWT_SECRET_KEY`·MinIO 자격증명(`MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD`, 앱의 `STORAGE_ACCESS_KEY`/`SECRET_KEY`로도 재사용)은 로컬 개발용과 분리된 값을 사용한다.
+**운영 배포(`docker compose up -d`, 예: 미니PC + Cloudflare Tunnel):** `backend/docker-compose.yml`의 `app` 서비스가 `Dockerfile`로 빌드된 백엔드 컨테이너를 `9999:8080`으로 노출한다. MinIO는 S3 API를 `9998:9000`으로, 관리 콘솔은 `9001:9001`로 노출한다. `STORAGE_ENDPOINT`(내부, `http://minio:9000`)와 `STORAGE_PUBLIC_ENDPOINT`(외부 공개 URL)는 반드시 분리한다 — 백엔드 자신의 HEAD/삭제/목록 호출까지 공개 URL로 나가면 같은 도커 네트워크의 이웃(MinIO)에게 굳이 인터넷(Cloudflare 등)을 거쳐 왕복하게 되어 프록시 계층에 따라 서명된 요청이 차단될 수 있다(`DECISIONS.md` 참조). `docker-compose.yml`의 `app` 서비스는 `STORAGE_ENDPOINT`를 `http://minio:9000`으로 고정하고, `.env`의 `STORAGE_ENDPOINT`(공개 URL) 값은 `STORAGE_PUBLIC_ENDPOINT`로만 전달한다. `.env`의 `SPRING_PROFILES_ACTIVE=prod`로 전환하고, `JWT_SECRET_KEY`·MinIO 자격증명(`MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD`, 앱의 `STORAGE_ACCESS_KEY`/`SECRET_KEY`로도 재사용)은 로컬 개발용과 분리된 값을 사용한다.
 
 ### CORS
 

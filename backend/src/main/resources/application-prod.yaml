@@ -10,6 +10,7 @@ spring:
 app:
   storage:
     endpoint: ${STORAGE_ENDPOINT}
+    public-endpoint: ${STORAGE_PUBLIC_ENDPOINT}
     region: ${STORAGE_REGION}
     access-key: ${STORAGE_ACCESS_KEY}
     secret-key: ${STORAGE_SECRET_KEY}

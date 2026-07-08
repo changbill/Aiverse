@@ -42,7 +42,7 @@ class S3ObjectStorageClientTest {
     private PresignedGetObjectRequest presignedGetObjectRequest;
 
     private final StorageProperties storageProperties = new StorageProperties(
-            "http://localhost:9000", "us-east-1", "access", "secret", "aiverse-test"
+            "http://localhost:9000", "http://localhost:9000", "us-east-1", "access", "secret", "aiverse-test"
     );
 
     private S3ObjectStorageClient objectStorageClient() {
