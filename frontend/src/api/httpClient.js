@@ -22,7 +22,7 @@ export function setUnauthorizedHandler(handler) {
   unauthorizedHandler = handler;
 }
 
-async function request(path, { method = 'GET', body, params, skipAuth = false, retryOn401 = true } = {}) {
+async function request(path, { method = 'GET', body, params, headers: extraHeaders, skipAuth = false, retryOn401 = true } = {}) {
   const url = new URL(path, API_BASE_URL);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -32,7 +32,7 @@ async function request(path, { method = 'GET', body, params, skipAuth = false, r
     });
   }
 
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json', ...extraHeaders };
   const token = !skipAuth ? accessTokenProvider() : null;
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -55,7 +55,7 @@ async function request(path, { method = 'GET', body, params, skipAuth = false, r
     if (response.status === 401 && !skipAuth && retryOn401 && unauthorizedHandler) {
       const recovered = await unauthorizedHandler();
       if (recovered) {
-        return request(path, { method, body, params, skipAuth, retryOn401: false });
+        return request(path, { method, body, params, headers: extraHeaders, skipAuth, retryOn401: false });
       }
     }
     throw new ApiError({

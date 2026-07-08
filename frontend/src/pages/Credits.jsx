@@ -1,24 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, Check, CreditCard, Star, Loader2, ArrowRight } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
+import { creditApi } from '@/api/creditApi';
 import confetti from 'canvas-confetti';
-const packages = [
-  { id: 'starter', name: '스타터', credits: 100, price: 10000, bonus: 0 },
-  { id: 'basic', name: '베이직', credits: 500, price: 45000, bonus: 50, popular: false },
-  { id: 'pro', name: '프로', credits: 1000, price: 85000, bonus: 150, popular: true },
-  { id: 'studio', name: '스튜디오', credits: 3000, price: 240000, bonus: 600 },
-];
 export default function Credits() {
   const navigate = useNavigate();
   const user = useAppStore((s) => s.user);
   const credits = useAppStore((s) => s.credits);
-  const addCredits = useAppStore((s) => s.addCredits);
-  const transactions = useAppStore((s) => s.transactions);
-  const [selected, setSelected] = useState('pro');
+  const setCredits = useAppStore((s) => s.setCredits);
+  const [packages, setPackages] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [selected, setSelected] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [notice, setNotice] = useState(null);
-  const handleCharge = () => {
+  useEffect(() => {
+    (async () => {
+      try {
+        const products = await creditApi.listProducts();
+        setPackages(products);
+        if (products[0]) {
+          const recommended = products.find((p) => p.code === 'PLUS') || products[0];
+          setSelected(recommended.id);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, []);
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const res = await creditApi.listTransactions({ page: 1, size: 10 });
+        setTransactions(res.items);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, [user]);
+  const handleCharge = async () => {
     if (!user) {
       navigate('/Login');
       return;
@@ -27,14 +48,19 @@ export default function Credits() {
     if (!pkg) return;
     setProcessing(true);
     setNotice(null);
-    // mockup payment
-    setTimeout(() => {
-      const total = pkg.credits + pkg.bonus;
-      addCredits(total, `${pkg.name} 패키지 충전`);
-      setProcessing(false);
-      setNotice({ type: 'success', message: `${total.toLocaleString('ko-KR')} 크레딧이 충전되었습니다!` });
+    try {
+      const result = await creditApi.pay(pkg.id);
+      setCredits(result.creditBalance);
+      const res = await creditApi.listTransactions({ page: 1, size: 10 });
+      setTransactions(res.items);
+      setNotice({ type: 'success', message: `${result.grantedCredit.toLocaleString('ko-KR')} 크레딧이 충전되었습니다!` });
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#6D28D9', '#0891B2', '#e879f9'] });
-    }, 900);
+    } catch (err) {
+      console.error(err);
+      setNotice({ type: 'error', message: err.message || '결제에 실패했어요. 잠시 후 다시 시도해주세요.' });
+    } finally {
+      setProcessing(false);
+    }
   };
   return (
     <div className="bg-stone-50 min-h-screen">
@@ -64,6 +90,7 @@ export default function Credits() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {packages.map((pkg) => {
                 const active = selected === pkg.id;
+                const popular = pkg.code === 'PLUS';
                 return (
                   <button
                     key={pkg.id}
@@ -72,18 +99,18 @@ export default function Credits() {
                       active ? 'border-[#6D28D9] bg-white shadow-lg shadow-violet-200/50' : 'border-violet-100 bg-white hover:border-violet-200'
                     }`}
                   >
-                    {pkg.popular && (
+                    {popular && (
                       <span className="absolute top-4 right-4 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#6D28D9] to-[#0891B2] text-white text-xs font-semibold">
                         <Star className="w-3 h-3" /> 인기
                       </span>
                     )}
                     <p className="font-semibold text-slate-500">{pkg.name}</p>
                     <p className="font-display text-3xl font-bold text-slate-900 mt-2">
-                      {pkg.credits.toLocaleString('ko-KR')}
+                      {pkg.creditAmount.toLocaleString('ko-KR')}
                       <span className="text-base font-normal text-slate-400 ml-1">크레딧</span>
                     </p>
-                    {pkg.bonus > 0 && (
-                      <p className="text-sm text-[#0891B2] font-medium mt-1">+{pkg.bonus} 보너스 크레딧</p>
+                    {pkg.bonusCredit > 0 && (
+                      <p className="text-sm text-[#0891B2] font-medium mt-1">+{pkg.bonusCredit} 보너스 크레딧</p>
                     )}
                     <p className="text-slate-700 font-semibold mt-4">₩{pkg.price.toLocaleString('ko-KR')}</p>
                     {active && (
@@ -101,17 +128,18 @@ export default function Credits() {
               <h3 className="font-display font-bold text-slate-900">결제 요약</h3>
               {(() => {
                 const pkg = packages.find((p) => p.id === selected);
-                const total = pkg.credits + pkg.bonus;
+                if (!pkg) return null;
+                const total = pkg.creditAmount + pkg.bonusCredit;
                 return (
                   <div className="mt-4 space-y-3 text-sm">
                     <div className="flex justify-between text-slate-500">
                       <span>{pkg.name} 패키지</span>
-                      <span>{pkg.credits.toLocaleString('ko-KR')} 크레딧</span>
+                      <span>{pkg.creditAmount.toLocaleString('ko-KR')} 크레딧</span>
                     </div>
-                    {pkg.bonus > 0 && (
+                    {pkg.bonusCredit > 0 && (
                       <div className="flex justify-between text-[#0891B2]">
                         <span>보너스</span>
-                        <span>+{pkg.bonus} 크레딧</span>
+                        <span>+{pkg.bonusCredit} 크레딧</span>
                       </div>
                     )}
                     <div className="border-t border-slate-100 pt-3 flex justify-between font-semibold text-slate-900">
@@ -127,7 +155,7 @@ export default function Credits() {
               })()}
               <button
                 onClick={handleCharge}
-                disabled={processing}
+                disabled={processing || !selected}
                 className="w-full mt-6 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#6D28D9] to-[#0891B2] text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-60 active:scale-95"
               >
                 {processing ? (
@@ -145,14 +173,14 @@ export default function Credits() {
           <div className="mt-12">
             <h2 className="font-display text-xl font-bold text-slate-900 mb-5">크레딧 내역</h2>
             <div className="bg-white rounded-2xl border border-violet-100 divide-y divide-slate-100">
-              {transactions.slice(0, 10).map((t, i) => (
-                <div key={i} className="flex items-center justify-between px-5 py-4">
+              {transactions.map((t) => (
+                <div key={t.id} className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${t.type === 'charge' ? 'bg-cyan-50 text-[#0891B2]' : 'bg-violet-50 text-[#6D28D9]'}`}>
-                      {t.type === 'charge' ? <Zap className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${t.type === 'CHARGE' ? 'bg-cyan-50 text-[#0891B2]' : 'bg-violet-50 text-[#6D28D9]'}`}>
+                      {t.type === 'CHARGE' ? <Zap className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-900">{t.description}</p>
+                      <p className="text-sm font-medium text-slate-900">{t.reason}</p>
                       <p className="text-xs text-slate-400">{new Date(t.createdAt).toLocaleString('ko-KR')}</p>
                     </div>
                   </div>

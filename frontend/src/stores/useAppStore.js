@@ -41,23 +41,7 @@ export const useAppStore = create(
           get().clearSession();
         }
       },
-      addCredits: (amount, label) =>
-        set((state) => {
-          const balance = state.credits + amount;
-          return {
-            credits: balance,
-            transactions: [
-              {
-                type: 'charge',
-                amount,
-                balance,
-                description: label || '크레딧 충전',
-                createdAt: new Date().toISOString(),
-              },
-              ...state.transactions,
-            ],
-          };
-        }),
+      setCredits: (credits) => set({ credits }),
       purchaseContent: (content) => {
         const state = get();
         if (state.purchases.some((p) => p.contentId === content.id)) {
