@@ -12,6 +12,7 @@ import com.example.aiverse.common.error.AuthErrorCode;
 import com.example.aiverse.dto.LoginRequest;
 import com.example.aiverse.dto.LoginResponse;
 import com.example.aiverse.dto.MeResponse;
+import com.example.aiverse.dto.MeUpdateRequest;
 import com.example.aiverse.dto.RegisterRequest;
 import com.example.aiverse.dto.RegisterResponse;
 import com.example.aiverse.entity.RefreshToken;
@@ -84,6 +85,20 @@ public class AuthService {
     public MeResponse getCurrentUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApplicationException(AuthErrorCode.INVALID_TOKEN));
+        return MeResponse.from(user);
+    }
+
+    @Transactional
+    public MeResponse updateProfile(Long userId, MeUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApplicationException(AuthErrorCode.INVALID_TOKEN));
+
+        String nickname = request.nickname() != null ? request.nickname().trim() : null;
+        if (nickname != null && !nickname.equals(user.getNickname()) && userRepository.existsByNickname(nickname)) {
+            throw new ApplicationException(AuthErrorCode.DUPLICATE_NICKNAME);
+        }
+
+        user.updateProfile(nickname, request.profileUrl(), request.introduction());
         return MeResponse.from(user);
     }
 

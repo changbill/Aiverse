@@ -6,6 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -15,6 +16,7 @@ import com.example.aiverse.common.response.ApiResponse;
 import com.example.aiverse.dto.LoginRequest;
 import com.example.aiverse.dto.LoginResponse;
 import com.example.aiverse.dto.MeResponse;
+import com.example.aiverse.dto.MeUpdateRequest;
 import com.example.aiverse.dto.ReissueResponse;
 import com.example.aiverse.dto.RegisterRequest;
 import com.example.aiverse.dto.RegisterResponse;
@@ -85,5 +87,12 @@ public class AuthController {
     @GetMapping("/me")
     public ApiResponse<MeResponse> me(@AuthenticationPrincipal Long userId) {
         return ApiResponse.of(authService.getCurrentUser(userId));
+    }
+
+    @Operation(summary = "사용자 정보 수정")
+    @SecurityRequirement(name = "bearer-jwt")
+    @PutMapping("/me")
+    public ApiResponse<MeResponse> updateMe(@AuthenticationPrincipal Long userId, @Valid @RequestBody MeUpdateRequest request) {
+        return ApiResponse.of(authService.updateProfile(userId, request));
     }
 }

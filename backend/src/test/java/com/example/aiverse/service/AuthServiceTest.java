@@ -22,6 +22,7 @@ import com.example.aiverse.common.error.ApplicationException;
 import com.example.aiverse.common.error.AuthErrorCode;
 import com.example.aiverse.dto.LoginRequest;
 import com.example.aiverse.dto.MeResponse;
+import com.example.aiverse.dto.MeUpdateRequest;
 import com.example.aiverse.dto.RegisterRequest;
 import com.example.aiverse.dto.RegisterResponse;
 import com.example.aiverse.entity.RefreshToken;
@@ -289,6 +290,64 @@ class AuthServiceTest {
         assertThatCode(() -> authService.logout(null)).doesNotThrowAnyException();
 
         verify(refreshTokenRepository, never()).findByTokenHash(any());
+    }
+
+    @Test
+    void 닉네임과_프로필_정보를_수정할_수_있다() {
+        User user = withId(User.register("user@example.com", "encoded-password", "닉네임"), 1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(userRepository.existsByNickname("새닉네임")).willReturn(false);
+
+        MeResponse response = authService.updateProfile(1L, new MeUpdateRequest("새닉네임", "https://example.com/profile.png", "소개"));
+
+        assertThat(response.nickname()).isEqualTo("새닉네임");
+        assertThat(response.profileUrl()).isEqualTo("https://example.com/profile.png");
+        assertThat(response.introduction()).isEqualTo("소개");
+    }
+
+    @Test
+    void 전달하지_않은_필드는_유지된다() {
+        User user = withId(User.register("user@example.com", "encoded-password", "닉네임"), 1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+        MeResponse response = authService.updateProfile(1L, new MeUpdateRequest(null, null, "소개만 수정"));
+
+        assertThat(response.nickname()).isEqualTo("닉네임");
+        assertThat(response.introduction()).isEqualTo("소개만 수정");
+        verify(userRepository, never()).existsByNickname(any());
+    }
+
+    @Test
+    void 다른_사용자가_사용중인_닉네임으로는_수정할_수_없다() {
+        User user = withId(User.register("user@example.com", "encoded-password", "닉네임"), 1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(userRepository.existsByNickname("중복닉네임")).willReturn(true);
+
+        assertThatThrownBy(() -> authService.updateProfile(1L, new MeUpdateRequest("중복닉네임", null, null)))
+                .isInstanceOf(ApplicationException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.DUPLICATE_NICKNAME);
+    }
+
+    @Test
+    void 자기_자신의_닉네임으로는_중복_검사_없이_수정할_수_있다() {
+        User user = withId(User.register("user@example.com", "encoded-password", "닉네임"), 1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+
+        MeResponse response = authService.updateProfile(1L, new MeUpdateRequest("닉네임", null, null));
+
+        assertThat(response.nickname()).isEqualTo("닉네임");
+        verify(userRepository, never()).existsByNickname(any());
+    }
+
+    @Test
+    void 존재하지_않는_사용자는_프로필을_수정할_수_없다() {
+        given(userRepository.findById(999L)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.updateProfile(999L, new MeUpdateRequest("닉네임", null, null)))
+                .isInstanceOf(ApplicationException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.INVALID_TOKEN);
     }
 
     private User withId(User user, Long id) {

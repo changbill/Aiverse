@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -403,5 +404,61 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.profileUrl").value(nullValue()))
                 .andExpect(jsonPath("$.data.introduction").value(nullValue()))
                 .andExpect(jsonPath("$.data.creditBalance").value(500));
+    }
+
+    @Test
+    void 프로필_수정에_성공한다() throws Exception {
+        MeResponse response = new MeResponse(
+                1L, "user@example.com", "새닉네임", UserRole.USER, UserStatus.ACTIVE,
+                "https://example.com/profile.png", "소개", 500, LocalDateTime.parse("2026-07-06T00:00:00")
+        );
+        given(authService.updateProfile(org.mockito.ArgumentMatchers.eq(1L), any())).willReturn(response);
+        authenticateAs(1L);
+
+        mockMvc.perform(put("/api/auth/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nickname": "새닉네임",
+                                  "profileUrl": "https://example.com/profile.png",
+                                  "introduction": "소개"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.nickname").value("새닉네임"))
+                .andExpect(jsonPath("$.data.profileUrl").value("https://example.com/profile.png"))
+                .andExpect(jsonPath("$.data.introduction").value("소개"));
+    }
+
+    @Test
+    void 프로필_수정시_닉네임이_너무_짧으면_400을_반환한다() throws Exception {
+        authenticateAs(1L);
+
+        mockMvc.perform(put("/api/auth/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nickname": "가"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void 프로필_수정시_닉네임이_중복되면_409를_반환한다() throws Exception {
+        willThrow(new ApplicationException(AuthErrorCode.DUPLICATE_NICKNAME))
+                .given(authService).updateProfile(org.mockito.ArgumentMatchers.eq(1L), any());
+        authenticateAs(1L);
+
+        mockMvc.perform(put("/api/auth/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nickname": "중복닉네임"
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_NICKNAME"));
     }
 }
