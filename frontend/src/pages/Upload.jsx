@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Image as ImageIcon, Video, Music, Upload as UploadIcon, Check, Loader2, X, Info } from 'lucide-react';
-import { Content, Category } from '@/api/entities';
-import { vibex } from '@/api/vibexClient';
+import { Image as ImageIcon, Video, Music, Upload as UploadIcon, Check, Loader2, X, Info, FileCheck } from 'lucide-react';
+import { contentApi, TYPE_TO_ASSET_TYPE } from '@/api/contentApi';
+import { categoryApi } from '@/api/categoryApi';
+import { fileApi } from '@/api/fileApi';
 import { useAppStore } from '@/stores/useAppStore';
 import confetti from 'canvas-confetti';
 const typeOptions = [
@@ -10,15 +11,16 @@ const typeOptions = [
   { value: 'video', label: '영상', Icon: Video },
   { value: 'music', label: '음악', Icon: Music },
 ];
-const licenseOptions = ['개인 이용', '상업적 이용 가능', '확장 라이선스'];
-function slugify(str) {
-  return String(str)
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9가-힣\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .slice(0, 60) + '-' + Math.random().toString(36).slice(2, 6);
-}
+const licenseOptions = [
+  { value: 'PERSONAL', label: '개인 이용' },
+  { value: 'COMMERCIAL', label: '상업적 이용 가능' },
+];
+const COVER_LIMIT = { maxSize: 10 * 1024 * 1024, accept: 'image/jpeg,image/png,image/webp' };
+const ORIGINAL_LIMITS = {
+  image: { maxSize: 50 * 1024 * 1024, accept: 'image/jpeg,image/png,image/webp', hint: 'JPEG/PNG/WebP, 최대 50MB' },
+  video: { maxSize: 1024 * 1024 * 1024, accept: 'video/mp4,video/webm', hint: 'MP4/WebM, 최대 1GB' },
+  music: { maxSize: 200 * 1024 * 1024, accept: 'audio/mpeg,audio/wav,audio/flac', hint: 'MP3/WAV/FLAC, 최대 200MB' },
+};
 export default function Upload() {
   const navigate = useNavigate();
   const user = useAppStore((s) => s.user);
@@ -32,10 +34,13 @@ export default function Upload() {
     tags: '',
     price: '',
     tool: '',
-    license: '개인 이용',
+    license: 'PERSONAL',
   });
-  const [thumbnail, setThumbnail] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [coverObjectKey, setCoverObjectKey] = useState('');
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState('');
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [originalFile, setOriginalFile] = useState(null);
+  const [uploadingOriginal, setUploadingOriginal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [notice, setNotice] = useState(null);
@@ -45,8 +50,7 @@ export default function Upload() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await Category.paging({ page: 1, limit: 50, filter: { search: '' } });
-        const list = res.data.data || [];
+        const list = await categoryApi.list();
         setCategories(list);
         if (list[0]) setForm((f) => ({ ...f, categoryId: list[0].id }));
       } catch (e) {
@@ -56,19 +60,62 @@ export default function Upload() {
   }, []);
   if (!user) return null;
   const setField = (key, value) => setForm((f) => ({ ...f, [key]: value }));
-  const onFileChange = async (e) => {
+  const onTypeChange = (type) => {
+    setField('type', type);
+    setOriginalFile(null);
+  };
+  const onCoverChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setUploading(true);
+    if (file.size > COVER_LIMIT.maxSize) {
+      setNotice({ type: 'error', message: '미리보기 이미지는 10MB를 초과할 수 없어요.' });
+      return;
+    }
+    setUploadingCover(true);
+    setNotice(null);
     try {
-      const result = await vibex.integrations.Core.UploadFile({ file, folder: 'images' });
-      const url = result?.data?.file_url;
-      if (url) setThumbnail(url);
+      const { data } = await fileApi.requestUploadUrl({
+        purpose: 'COVER',
+        assetType: TYPE_TO_ASSET_TYPE[form.type],
+        fileName: file.name,
+        contentType: file.type,
+        fileSize: file.size,
+      });
+      await fileApi.uploadToStorage(data.uploadUrl, file);
+      setCoverObjectKey(data.objectKey);
+      setCoverPreviewUrl(URL.createObjectURL(file));
     } catch (err) {
       console.error(err);
       setNotice({ type: 'error', message: '이미지 업로드에 실패했어요. 다시 시도해주세요.' });
     } finally {
-      setUploading(false);
+      setUploadingCover(false);
+    }
+  };
+  const onOriginalChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const limit = ORIGINAL_LIMITS[form.type];
+    if (file.size > limit.maxSize) {
+      setNotice({ type: 'error', message: `원본 파일 크기가 허용 범위를 초과했어요 (${limit.hint}).` });
+      return;
+    }
+    setUploadingOriginal(true);
+    setNotice(null);
+    try {
+      const { data } = await fileApi.requestUploadUrl({
+        purpose: 'ORIGINAL',
+        assetType: TYPE_TO_ASSET_TYPE[form.type],
+        fileName: file.name,
+        contentType: file.type,
+        fileSize: file.size,
+      });
+      await fileApi.uploadToStorage(data.uploadUrl, file);
+      setOriginalFile({ objectKey: data.objectKey, fileName: file.name, contentType: file.type, fileSize: file.size });
+    } catch (err) {
+      console.error(err);
+      setNotice({ type: 'error', message: '원본 파일 업로드에 실패했어요. 다시 시도해주세요.' });
+    } finally {
+      setUploadingOriginal(false);
     }
   };
   const validate = () => {
@@ -76,7 +123,9 @@ export default function Upload() {
     if (!form.title.trim()) e.title = '제목을 입력해주세요';
     if (!form.description.trim()) e.description = '설명을 입력해주세요';
     if (!form.categoryId) e.categoryId = '카테고리를 선택해주세요';
-    if (form.price === '' || Number(form.price) < 0) e.price = '올바른 가격을 입력해주세요';
+    if (form.price === '' || Number(form.price) <= 0) e.price = '올바른 가격을 입력해주세요';
+    if (!coverObjectKey) e.cover = '미리보기 이미지를 업로드해주세요';
+    if (!originalFile) e.original = '원본 파일을 업로드해주세요';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -87,32 +136,26 @@ export default function Upload() {
     try {
       const payload = {
         title: form.title.trim(),
-        slug: slugify(form.title),
         description: form.description.trim(),
-        type: form.type,
-        categoryId: form.categoryId,
+        assetType: TYPE_TO_ASSET_TYPE[form.type],
+        categoryId: Number(form.categoryId),
+        previewObjectKey: coverObjectKey,
+        originalObjectKey: originalFile.objectKey,
+        originalFilename: originalFile.fileName,
+        contentType: originalFile.contentType,
+        fileSize: originalFile.fileSize,
+        priceCredit: Number(form.price),
+        aiTool: form.tool.trim(),
+        licenseType: form.license,
         tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
-        price: Number(form.price),
-        tool: form.tool.trim(),
-        license: form.license,
-        thumbnail: thumbnail || '',
-        creatorId: user.id,
-        creatorName: user.name,
-        sales: 0,
-        views: 0,
-        likes: 0,
-        featured: false,
-        status: 'published',
-        createdAt: new Date().toISOString(),
       };
-      const res = await Content.create(payload);
-      const created = res?.data || payload;
+      const created = await contentApi.create(payload);
       addUpload(created);
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#6D28D9', '#0891B2', '#e879f9'] });
       navigate('/Dashboard');
     } catch (err) {
       console.error(err);
-      setNotice({ type: 'error', message: '등록에 실패했어요. 잠시 후 다시 시도해주세요.' });
+      setNotice({ type: 'error', message: err.message || '등록에 실패했어요. 잠시 후 다시 시도해주세요.' });
     } finally {
       setSubmitting(false);
     }
@@ -129,34 +172,6 @@ export default function Upload() {
           </div>
         )}
         <div role="form" aria-label="창작물 등록" className="mt-8 bg-white rounded-3xl border border-violet-100 p-6 md:p-8 space-y-6 shadow-lg shadow-violet-100/40">
-          {/* thumbnail */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">대표 이미지 / 썸네일</label>
-            {thumbnail ? (
-              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-violet-100">
-                <img src={thumbnail} alt="preview" className="w-full h-full object-cover" />
-                <button
-                  onClick={() => setThumbnail('')}
-                  className="absolute top-3 right-3 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70"
-                  aria-label="이미지 제거"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-violet-200 bg-violet-50/50 cursor-pointer hover:bg-violet-50 transition-colors">
-                {uploading ? (
-                  <Loader2 className="w-8 h-8 text-[#6D28D9] animate-spin" />
-                ) : (
-                  <>
-                    <UploadIcon className="w-8 h-8 text-[#6D28D9]" />
-                    <span className="mt-2 text-sm text-slate-500">클릭하여 이미지 업로드</span>
-                  </>
-                )}
-                <input type="file" accept="image/*" className="hidden" onChange={onFileChange} disabled={uploading} />
-              </label>
-            )}
-          </div>
           {/* type */}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">유형</label>
@@ -164,7 +179,7 @@ export default function Upload() {
               {typeOptions.map((t) => (
                 <button
                   key={t.value}
-                  onClick={() => setField('type', t.value)}
+                  onClick={() => onTypeChange(t.value)}
                   className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 transition-all ${
                     form.type === t.value ? 'border-[#6D28D9] bg-violet-50 text-[#6D28D9]' : 'border-slate-200 text-slate-500 hover:border-violet-200'
                   }`}
@@ -174,6 +189,67 @@ export default function Upload() {
                 </button>
               ))}
             </div>
+          </div>
+          {/* cover */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">미리보기 커버 이미지</label>
+            {coverPreviewUrl ? (
+              <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-violet-100">
+                <img src={coverPreviewUrl} alt="preview" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => { setCoverObjectKey(''); setCoverPreviewUrl(''); }}
+                  className="absolute top-3 right-3 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70"
+                  aria-label="이미지 제거"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <label className={`flex flex-col items-center justify-center w-full aspect-[4/3] rounded-2xl border-2 border-dashed bg-violet-50/50 cursor-pointer hover:bg-violet-50 transition-colors ${errors.cover ? 'border-red-400' : 'border-violet-200'}`}>
+                {uploadingCover ? (
+                  <Loader2 className="w-8 h-8 text-[#6D28D9] animate-spin" />
+                ) : (
+                  <>
+                    <UploadIcon className="w-8 h-8 text-[#6D28D9]" />
+                    <span className="mt-2 text-sm text-slate-500">클릭하여 커버 이미지 업로드 (JPEG/PNG/WebP, 최대 10MB)</span>
+                  </>
+                )}
+                <input type="file" accept={COVER_LIMIT.accept} className="hidden" onChange={onCoverChange} disabled={uploadingCover} />
+              </label>
+            )}
+            {errors.cover && <p className="text-xs text-red-500 mt-1">{errors.cover}</p>}
+          </div>
+          {/* original */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">원본 파일</label>
+            {originalFile ? (
+              <div className={`flex items-center justify-between gap-3 p-4 rounded-xl border ${errors.original ? 'border-red-400' : 'border-violet-100'} bg-violet-50/50`}>
+                <span className="inline-flex items-center gap-2 text-sm text-slate-700 min-w-0">
+                  <FileCheck className="w-5 h-5 text-[#6D28D9] flex-shrink-0" />
+                  <span className="truncate">{originalFile.fileName}</span>
+                </span>
+                <button
+                  onClick={() => setOriginalFile(null)}
+                  className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-white flex-shrink-0"
+                  aria-label="원본 파일 제거"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <label className={`flex flex-col items-center justify-center w-full py-8 rounded-2xl border-2 border-dashed bg-violet-50/50 cursor-pointer hover:bg-violet-50 transition-colors ${errors.original ? 'border-red-400' : 'border-violet-200'}`}>
+                {uploadingOriginal ? (
+                  <Loader2 className="w-8 h-8 text-[#6D28D9] animate-spin" />
+                ) : (
+                  <>
+                    <UploadIcon className="w-8 h-8 text-[#6D28D9]" />
+                    <span className="mt-2 text-sm text-slate-500">클릭하여 원본 파일 업로드 ({ORIGINAL_LIMITS[form.type].hint})</span>
+                  </>
+                )}
+                <input type="file" accept={ORIGINAL_LIMITS[form.type].accept} className="hidden" onChange={onOriginalChange} disabled={uploadingOriginal} />
+              </label>
+            )}
+            {errors.original && <p className="text-xs text-red-500 mt-1">{errors.original}</p>}
           </div>
           {/* title */}
           <div>
@@ -218,7 +294,7 @@ export default function Upload() {
               <label className="block text-sm font-semibold text-slate-700 mb-2">가격 (크레딧)</label>
               <input
                 type="number"
-                min="0"
+                min="1"
                 value={form.price}
                 onChange={(e) => setField('price', e.target.value)}
                 placeholder="예: 120"
@@ -247,7 +323,7 @@ export default function Upload() {
                 className={`${inputCls} cursor-pointer`}
               >
                 {licenseOptions.map((l) => (
-                  <option key={l} value={l}>{l}</option>
+                  <option key={l.value} value={l.value}>{l.label}</option>
                 ))}
               </select>
             </div>
@@ -268,7 +344,7 @@ export default function Upload() {
           </div>
           <button
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || uploadingCover || uploadingOriginal}
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-[#6D28D9] to-[#0891B2] text-white font-semibold text-lg hover:opacity-90 transition-opacity disabled:opacity-60 active:scale-95"
           >
             {submitting ? (

@@ -1,6 +1,7 @@
 import { httpClient } from './httpClient';
 
 const ASSET_TYPE_TO_TYPE = { IMAGE: 'image', VIDEO: 'video', MUSIC: 'music' };
+export const TYPE_TO_ASSET_TYPE = { image: 'IMAGE', video: 'VIDEO', music: 'MUSIC' };
 
 const SORT_TO_BACKEND = {
   '-createdAt': 'LATEST',
@@ -49,6 +50,10 @@ export const contentApi = {
   },
   get: async (id) => {
     const res = await httpClient.get(`/api/contents/${id}`);
+    return normalizeAsset(res.data);
+  },
+  create: async (payload) => {
+    const res = await httpClient.post('/api/contents', payload);
     return normalizeAsset(res.data);
   },
 };
