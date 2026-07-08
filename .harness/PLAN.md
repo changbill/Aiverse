@@ -15,7 +15,6 @@
 
 #### 8단계: 프론트엔드 REST API 전환
 
-- [ ] Library·다운로드·구매 흐름을 Purchase API에 연동
 - [ ] Dashboard를 기간별 판매 통계 API에 연동
 - [ ] VibeX SDK 의존 코드와 신뢰할 수 없는 클라이언트 계산 제거
 

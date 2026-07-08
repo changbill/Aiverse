@@ -9,7 +9,6 @@ export default function Profile() {
   const navigate = useNavigate();
   const user = useAppStore((s) => s.user);
   const credits = useAppStore((s) => s.credits);
-  const purchases = useAppStore((s) => s.purchases);
   const updateUser = useAppStore((s) => s.updateUser);
   const logout = useAppStore((s) => s.logout);
   const [nickname, setNickname] = useState('');
@@ -49,7 +48,7 @@ export default function Profile() {
   };
   const inputCls = 'w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[#6D28D9] focus:ring-2 focus:ring-violet-200 outline-none transition-colors';
   const quickLinks = [
-    { to: '/Library', label: '보관함', desc: `${purchases.length}개 구매`, Icon: Package },
+    { to: '/Library', label: '보관함', desc: '구매한 콘텐츠 확인', Icon: Package },
     { to: '/Dashboard', label: '판매 대시보드', desc: '판매 현황', Icon: BarChart },
     { to: '/Credits', label: '크레딧 충전', desc: `${credits.toLocaleString('ko-KR')} 보유`, Icon: CreditCard },
   ];

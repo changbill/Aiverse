@@ -11,9 +11,7 @@ export const useAppStore = create(
       accessToken: null,
       isAuthReady: false,
       credits: 0,
-      purchases: [],
       myUploads: [],
-      transactions: [],
       setAccessToken: (accessToken) => set({ accessToken }),
       setSession: (accessToken, user) =>
         set((state) => {
@@ -24,9 +22,7 @@ export const useAppStore = create(
             userId: user?.id ?? null,
             isAuthReady: true,
             credits: sameUser ? state.credits : (Number(user?.creditBalance) || 0),
-            purchases: sameUser ? state.purchases : [],
             myUploads: sameUser ? state.myUploads : [],
-            transactions: sameUser ? state.transactions : [],
           };
         }),
       clearSession: () => set({ accessToken: null, user: null, userId: null, isAuthReady: true }),
@@ -42,46 +38,6 @@ export const useAppStore = create(
         }
       },
       setCredits: (credits) => set({ credits }),
-      purchaseContent: (content) => {
-        const state = get();
-        if (state.purchases.some((p) => p.contentId === content.id)) {
-          return { success: false, message: '이미 구매한 콘텐츠입니다.' };
-        }
-        if (state.credits < content.price) {
-          return { success: false, message: '크레딧이 부족합니다.' };
-        }
-        const balance = state.credits - content.price;
-        set({
-          credits: balance,
-          purchases: [
-            {
-              contentId: content.id,
-              title: content.title,
-              slug: content.slug,
-              type: content.type,
-              thumbnail: content.thumbnail,
-              license: content.license,
-              price: content.price,
-              creatorName: content.creatorName,
-              tool: content.tool,
-              purchasedAt: new Date().toISOString(),
-            },
-            ...state.purchases,
-          ],
-          transactions: [
-            {
-              type: 'purchase',
-              amount: -content.price,
-              balance,
-              description: `${content.title} 구매`,
-              createdAt: new Date().toISOString(),
-            },
-            ...state.transactions,
-          ],
-        });
-        return { success: true, message: '구매가 완료되었습니다!' };
-      },
-      isPurchased: (contentId) => get().purchases.some((p) => p.contentId === contentId),
       addUpload: (content) => set((state) => ({ myUploads: [content, ...state.myUploads] })),
     }),
     {

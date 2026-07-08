@@ -5,6 +5,7 @@ import {
   Award, Info, Loader2, User as UserIcon,
 } from 'lucide-react';
 import { contentApi } from '@/api/contentApi';
+import { purchaseApi } from '@/api/purchaseApi';
 import { useAppStore } from '@/stores/useAppStore';
 import ContentCard from '@/components/ContentCard';
 import confetti from 'canvas-confetti';
@@ -20,13 +21,15 @@ export default function ContentDetail() {
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState(null);
+  const [purchased, setPurchased] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
   const user = useAppStore((s) => s.user);
   const credits = useAppStore((s) => s.credits);
-  const purchaseContent = useAppStore((s) => s.purchaseContent);
-  const isPurchased = useAppStore((s) => s.isPurchased);
+  const setCredits = useAppStore((s) => s.setCredits);
   useEffect(() => {
     window.scrollTo(0, 0);
     setNotice(null);
+    setPurchased(false);
     (async () => {
       setLoading(true);
       try {
@@ -43,18 +46,27 @@ export default function ContentDetail() {
       }
     })();
   }, [id]);
-  const purchased = content ? isPurchased(content.id) : false;
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     if (!user) {
       navigate('/Login');
       return;
     }
-    const result = purchaseContent(content);
-    if (result.success) {
+    setPurchasing(true);
+    setNotice(null);
+    try {
+      const result = await purchaseApi.purchase(content.id);
+      setCredits(result.creditBalance);
+      setPurchased(true);
       setNotice({ type: 'success', message: '구매 완료! 보관함에서 확인하세요.' });
       confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 }, colors: ['#6D28D9', '#0891B2', '#e879f9'] });
-    } else {
-      setNotice({ type: 'error', message: result.message });
+    } catch (err) {
+      if (err.code === 'ALREADY_PURCHASED') {
+        setPurchased(true);
+      } else {
+        setNotice({ type: 'error', message: err.message || '구매에 실패했어요.' });
+      }
+    } finally {
+      setPurchasing(false);
     }
   };
   if (loading) {
@@ -197,9 +209,14 @@ export default function ContentDetail() {
                 ) : (
                   <button
                     onClick={handlePurchase}
-                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white text-[#6D28D9] font-semibold hover:bg-violet-50 transition-colors active:scale-95"
+                    disabled={purchasing}
+                    className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white text-[#6D28D9] font-semibold hover:bg-violet-50 transition-colors active:scale-95 disabled:opacity-60"
                   >
-                    <Check className="w-5 h-5" /> 크레딧으로 구매하기
+                    {purchasing ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" /> 구매 처리 중...</>
+                    ) : (
+                      <><Check className="w-5 h-5" /> 크레딧으로 구매하기</>
+                    )}
                   </button>
                 )}
               </div>
