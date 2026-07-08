@@ -4,7 +4,7 @@
 > 세션별 서술(무엇을 했고 무엇이 막혔는지)은 `HANDOFF.md`에, 결정과 이유는 `DECISIONS.md`에 남긴다 — 여기에 다시 옮기지 않는다.
 > 단계가 끝나면 그 단계를 한 줄로 갱신한다. 이슈/커밋 단위로 로그를 쌓지 않는다.
 
-**마지막 갱신:** 2026-07-07
+**마지막 갱신:** 2026-07-08
 
 ## 완료된 단계
 
@@ -16,6 +16,7 @@
 - **5단계 크레딧과 목업 결제**: `CreditProduct`/`Payment`/`CreditTransaction` Entity+Repository(3계층), `GET /api/credit-products`(활성 상품만), `POST /api/payments`(서버 가격 기준 목업 결제, `Idempotency-Key` 필수·재요청 시 최초 결과 반환), 사용자 행 `PESSIMISTIC_WRITE` 잠금과 `READ_COMMITTED` 격리로 잔액·결제·거래 이력을 원자 처리, `GET /api/credit-transactions`(유형 필터·페이지네이션), 실제 스레드로 검증한 중복 충전·동시 요청 테스트까지 전체 완료.
 - **6단계 구매·보관함·다운로드**: `Purchase` 쓰기 확장·`CreatorSettlement`/`Download` Entity+Repository(3계층), `POST /api/purchases`(구매자·창작자 행 사용자 ID 오름차순 잠금, 잔액 차감·80% 창작자 정산·`Purchase`/`CreatorSettlement` 생성 단일 트랜잭션, 본인 콘텐츠·중복 구매·잔액 부족 409, `Idempotency-Key` 재요청 처리), `GET /api/library`(삭제 콘텐츠도 계속 노출), `POST /api/downloads`(구매 확인 후 원본 Presigned GET URL 5분 발급), 실제 스레드로 검증한 교착 방지·가격 및 라이선스 스냅샷·삭제 콘텐츠 접근 테스트까지 전체 완료.
 - **7단계 창작자 대시보드**: `GET /api/dashboard/sales`(`period=7D`/`30D`/`ALL`), `CreatorSettlement` 기준 Querydsl 집계로 등록 콘텐츠 수·누적 판매 횟수·크레딧(`totals`), 판매 없는 날짜를 0으로 채운 일자별 추이(`series`, `ALL`은 실제 판매일만), 판매량 상위 5개(동률 시 최신 콘텐츠 우선, `items`)까지 전체 완료. 다른 창작자 데이터 미혼입·기간 경계(정각 포함/직전 제외) 테스트 포함.
+- **8단계 프론트엔드 REST API 전환**: (사전 준비로 `PUT /api/auth/me` 백엔드 엔드포인트 TDD 구현 포함) `VITE_API_URL` 기반 `httpClient`(공통 응답/오류 파싱, 401 시 재발급 훅)와 `authApi`/`contentApi`/`categoryApi`/`fileApi`/`creditApi`/`purchaseApi`/`dashboardApi` 도입, 메모리 Access token+Refresh 쿠키 재발급 기반 세션 복원(`useAppStore.restoreSession`)으로 통합해 기존 미사용 `AuthContext`/`AuthProvider`/`useAuth` 제거, Login·Register·Profile·Home·Explore·ContentDetail(`/content/:slug`→`/content/:id`)·Upload(Presigned 업로드+콘텐츠 등록)·Credits·Library·Dashboard(recharts 추이 차트) 전 페이지를 실제 백엔드 API로 교체, VibeX SDK(`src/sdk`, `src/api/{entities,vibexClient,integrations}.js`, `@vibexnpm/talkflow`)와 클라이언트가 직접 계산하던 mock 크레딧/구매/집계 로직 제거까지 전체 완료. (VibeX iframe 비주얼 에디터 개발 도구는 API 통신과 무관해 이번 범위에서 제외 — `BACKLOG.md` 참조)
 
 ## 확립된 컨벤션 (요약 — 근거·배경은 `DECISIONS.md` 참조)
 
@@ -35,4 +36,4 @@
 
 ## 다음 단계
 
-8단계 프론트엔드 REST API 전환 → 9단계 전체 검증과 문서화 순 (자세한 내용은 `PLAN.md` 참조).
+9단계 전체 검증과 문서화 (자세한 내용은 `PLAN.md` 참조).
