@@ -7,7 +7,17 @@
 
 ---
 
-## 2026-07-08 — Claude Code
+## 2026-07-08 — Claude Code (9단계)
+
+**무엇을 했나:** 9단계(전체 검증과 문서화)를 진행해 AIverse MVP 구현 로드맵 전체(1~9단계)를 완료했다. `./gradlew test`(단위), `./gradlew integrationTest`(Testcontainers MySQL 전체 통합), `./gradlew build` 모두 통과했고 `npm run build`(프론트엔드 프로덕션 빌드)도 성공했다. 이어서 `backend/docker-compose.yml`로 MySQL+MinIO를 띄우고 `local` 프로필로 백엔드를 직접 기동한 뒤, 회원가입→로그인→Presigned 업로드(커버+원본)→콘텐츠 등록→크레딧 충전→구매→보관함 조회→다운로드→창작자 대시보드까지 전체 흐름을 curl로 직접 호출해 검증했다. 다운로드된 파일이 업로드한 원본과 바이트 단위로 일치함을 `diff`로 확인했고, 대시보드 집계(80/20 정산)도 정확히 반영됨을 확인했다. 코드 수정이 필요한 문제는 발견되지 않아 소스 변경 없이 완료했다. `PLAN.md`에서 완료된 MVP 로드맵 전체를 제거하고, `STATE.md`에 9단계 완료 요약을 추가했으며, `BACKLOG.md`에 "이 환경에 브라우저 도구가 없어 실제 UI 클릭 검증은 못 하고 API 호출로 대체했다"는 알려진 이슈를 기록했다.
+
+**막힌 부분:** 없음. 다만 브라우저가 없는 환경이라 React 컴포넌트 자체의 렌더링/상호작용(폼 검증 메시지, 로딩 스피너, 라우팅 전환 등)은 검증하지 못했다 — 필요하면 사람이 직접 `npm run dev`로 띄워 확인하는 것을 권장한다.
+
+**다음에 할 일:** AIverse MVP 로드맵이 전체 완료된 상태다. 새로운 기능/변경 요청이 들어오면 `PLAN.md`에 계획 초안을 작성하는 것부터 시작한다. `BACKLOG.md`의 기술 부채(VibeX iframe 개발 도구 정리, likes 필드 처리, 판매자 스포트라이트 하드코딩 등)와 향후 아이디어 중 우선순위를 사용자와 논의해도 좋다.
+
+---
+
+## 2026-07-08 — Claude Code (8단계)
 
 **무엇을 했나:** `feature/17-프론트엔드-REST-API전환-구현` 브랜치에서 8단계 전체를 완료했다. 사전 준비로 `ARCHITECTURE.md`에는 명세되어 있었지만 미구현이던 `PUT /api/auth/me`를 TDD로 채워 넣었다(`MeUpdateRequest`, `AuthService.updateProfile`, `AuthController`). 이후 프론트엔드 9개 체크리스트 항목을 순서대로 구현·커밋했다: (1) `VITE_API_URL` 기반 `httpClient`(공통 응답/오류 파싱, 요청별 커스텀 헤더, 401 재발급 훅)와 `ApiError`, (2) `useAppStore`의 in-memory `accessToken`+`setSession`/`clearSession`과 `restoreSession`(reissue→me)으로 세션 복원 구현, 사용자가 이전 세션에 요청한 대로 미사용 상태였던 `AuthContext`/`AuthProvider`/`useAuth`(및 여기에만 의존하던 VibeX 브랜딩 배지)를 제거해 `useAppStore`로 인증 상태를 일원화, (3) Login·Register·Profile을 `authApi`(register/login/reissue/logout/me/updateMe)에 연동, (4) Home·Explore·ContentDetail을 `contentApi`/`categoryApi`에 연동하면서 백엔드에 slug 개념이 없어 라우트를 `/content/:slug`→`/content/:id`로 변경(사용자 사전 확정 결정), (5) Upload를 `fileApi`(Presigned URL 발급+직접 PUT 업로드, COVER/ORIGINAL 두 단계)와 `contentApi.create`에 연동, (6) Credits를 `creditApi`(상품 목록·목업 결제·거래 이력)에 연동, (7) Library·다운로드·구매를 `purchaseApi`(구매·보관함·다운로드 Presigned URL)에 연동, (8) Dashboard를 `dashboardApi`(기간별 판매 통계)에 연동하고 recharts로 추이 차트를 추가, (9) 어떤 페이지도 더는 참조하지 않게 된 VibeX SDK(`src/sdk`, `src/api/{entities,vibexClient,integrations}.js`, `@vibexnpm/talkflow`, `src/lib/app-params.js`) 전체를 삭제. 각 단계마다 클라이언트가 직접 계산하던 mock 로직(`addCredits`/`purchaseContent`/`isPurchased`/`transactions`/`myUploads`/`addUpload`)도 실제 서버 응답 기반으로 대체되며 함께 제거됐다. 프론트엔드에는 자동화된 테스트가 없어 각 커밋마다 `eslint`와 dev 서버(모듈 컴파일 확인)로, 마지막에는 `npm run build`(프로덕션 빌드)로 검증했다 — 실제 브라우저 렌더링/클릭 테스트는 이 환경에 브라우저 도구가 없어 수행하지 못했다. 백엔드 변경분은 `./gradlew test`(단위)로 확인했다.
 
