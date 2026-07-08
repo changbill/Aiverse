@@ -7,6 +7,16 @@
 
 ---
 
+## 2026-07-08 — Claude Code
+
+**무엇을 했나:** `feature/17-프론트엔드-REST-API전환-구현` 브랜치에서 8단계 전체를 완료했다. 사전 준비로 `ARCHITECTURE.md`에는 명세되어 있었지만 미구현이던 `PUT /api/auth/me`를 TDD로 채워 넣었다(`MeUpdateRequest`, `AuthService.updateProfile`, `AuthController`). 이후 프론트엔드 9개 체크리스트 항목을 순서대로 구현·커밋했다: (1) `VITE_API_URL` 기반 `httpClient`(공통 응답/오류 파싱, 요청별 커스텀 헤더, 401 재발급 훅)와 `ApiError`, (2) `useAppStore`의 in-memory `accessToken`+`setSession`/`clearSession`과 `restoreSession`(reissue→me)으로 세션 복원 구현, 사용자가 이전 세션에 요청한 대로 미사용 상태였던 `AuthContext`/`AuthProvider`/`useAuth`(및 여기에만 의존하던 VibeX 브랜딩 배지)를 제거해 `useAppStore`로 인증 상태를 일원화, (3) Login·Register·Profile을 `authApi`(register/login/reissue/logout/me/updateMe)에 연동, (4) Home·Explore·ContentDetail을 `contentApi`/`categoryApi`에 연동하면서 백엔드에 slug 개념이 없어 라우트를 `/content/:slug`→`/content/:id`로 변경(사용자 사전 확정 결정), (5) Upload를 `fileApi`(Presigned URL 발급+직접 PUT 업로드, COVER/ORIGINAL 두 단계)와 `contentApi.create`에 연동, (6) Credits를 `creditApi`(상품 목록·목업 결제·거래 이력)에 연동, (7) Library·다운로드·구매를 `purchaseApi`(구매·보관함·다운로드 Presigned URL)에 연동, (8) Dashboard를 `dashboardApi`(기간별 판매 통계)에 연동하고 recharts로 추이 차트를 추가, (9) 어떤 페이지도 더는 참조하지 않게 된 VibeX SDK(`src/sdk`, `src/api/{entities,vibexClient,integrations}.js`, `@vibexnpm/talkflow`, `src/lib/app-params.js`) 전체를 삭제. 각 단계마다 클라이언트가 직접 계산하던 mock 로직(`addCredits`/`purchaseContent`/`isPurchased`/`transactions`/`myUploads`/`addUpload`)도 실제 서버 응답 기반으로 대체되며 함께 제거됐다. 프론트엔드에는 자동화된 테스트가 없어 각 커밋마다 `eslint`와 dev 서버(모듈 컴파일 확인)로, 마지막에는 `npm run build`(프로덕션 빌드)로 검증했다 — 실제 브라우저 렌더링/클릭 테스트는 이 환경에 브라우저 도구가 없어 수행하지 못했다. 백엔드 변경분은 `./gradlew test`(단위)로 확인했다.
+
+**막힌 부분:** 없음. 다만 이 세션 환경에는 헤드리스 브라우저/스크린샷 도구가 없어 UI를 실제로 렌더링해 클릭해보는 검증은 못 했다 — 다음 세션에서 `docker compose`로 백엔드를 띄우고 `npm run dev`로 실제 브라우저 확인을 하는 것을 권장한다.
+
+**다음에 할 일:** `feature/17-...` 브랜치를 master에 병합하고 삭제할지 사용자 확인을 받는다(이 세션 안에서는 아직 병합하지 않았다). 병합 후에는 9단계(전체 검증과 문서화 — 백엔드 전체 테스트·Gradle 빌드, 프론트엔드 프로덕션 빌드, Docker Compose 환경에서 회원가입→업로드→충전→구매→다운로드→대시보드 전체 흐름 수동 검증)를 새 브랜치 없이(문서화 위주) 진행한다. `BACKLOG.md`에 새로 추가된 "VibeX iframe 비주얼 에디터 개발 도구" 항목은 이번 범위에서 의도적으로 제외했으니 착수 전 사용자와 필요 여부를 먼저 확인할 것.
+
+---
+
 ## 2026-07-07 — Claude Code
 
 **무엇을 했나:** `feature/16-창작자-대시보드-구현` 브랜치에서 7단계 전체를 완료했다. `DashboardPeriod`(쿼리 파라미터 7D/30D/ALL 파싱), `AssetRepository.countByCreatorId`, `CreatorSettlementRepository`에 Querydsl 기반 `sumSales`/`findDailySales`/`findTopAssetSales`를 추가하고 `GET /api/dashboard/sales`로 조립했다. `series`는 7D/30D에서 판매 없는 날짜를 0으로 채우고 `ALL`은 실제 판매일만 반환하도록 했으며, `items`는 판매량 상위 5개(동률 시 최신 콘텐츠 우선)를 반환한다. 진행 중 Querydsl `DateTemplate`으로 MySQL `DATE(...)`를 `LocalDate`로 바로 캐스팅하면 `ClassCastException`이 나는 걸 발견해 `java.sql.Date`로 받아 변환하도록 고쳤다(자세한 내용은 `DECISIONS.md`). 다른 창작자 데이터 미혼입과 기간 경계(정각 포함/직전 제외) 테스트도 추가했다.
