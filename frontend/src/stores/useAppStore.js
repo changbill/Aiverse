@@ -11,7 +11,6 @@ export const useAppStore = create(
       accessToken: null,
       isAuthReady: false,
       credits: 0,
-      myUploads: [],
       setAccessToken: (accessToken) => set({ accessToken }),
       setSession: (accessToken, user) =>
         set((state) => {
@@ -22,7 +21,6 @@ export const useAppStore = create(
             userId: user?.id ?? null,
             isAuthReady: true,
             credits: sameUser ? state.credits : (Number(user?.creditBalance) || 0),
-            myUploads: sameUser ? state.myUploads : [],
           };
         }),
       clearSession: () => set({ accessToken: null, user: null, userId: null, isAuthReady: true }),
@@ -38,7 +36,6 @@ export const useAppStore = create(
         }
       },
       setCredits: (credits) => set({ credits }),
-      addUpload: (content) => set((state) => ({ myUploads: [content, ...state.myUploads] })),
     }),
     {
       name: 'aiverse-store',

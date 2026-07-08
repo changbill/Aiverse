@@ -24,7 +24,6 @@ const ORIGINAL_LIMITS = {
 export default function Upload() {
   const navigate = useNavigate();
   const user = useAppStore((s) => s.user);
-  const addUpload = useAppStore((s) => s.addUpload);
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
     title: '',
@@ -149,8 +148,7 @@ export default function Upload() {
         licenseType: form.license,
         tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
       };
-      const created = await contentApi.create(payload);
-      addUpload(created);
+      await contentApi.create(payload);
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#6D28D9', '#0891B2', '#e879f9'] });
       navigate('/Dashboard');
     } catch (err) {
