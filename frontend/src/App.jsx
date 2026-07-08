@@ -16,14 +16,11 @@ import {
   useLocation,
 } from "react-router-dom";
 import PageNotFound from "./lib/PageNotFound";
-import { AuthProvider } from "./lib/AuthProvider";
-import { useAuth } from "./lib/useAuth";
-import UserNotRegisteredError from "@/components/UserNotRegisteredError";
 import Login from "./pages/admin/Login";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import RouterErrorBoundary from "@/components/ui/router-error-boundary";
 import DefaultHome from "./pages/Home";
-import PoweredByBadge from "@/components/PoweredByBadge";
+import { useAppStore, restoreSession } from "@/stores/useAppStore";
 
 const { Pages, Layout, mainPage, Admins, adminMainPage, AdminLayout } = pagesConfig;
 
@@ -60,28 +57,18 @@ function ScrollBehavior() {
 }
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } =
-    useAuth();
+  const isAuthReady = useAppStore((s) => s.isAuthReady);
 
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  useEffect(() => {
+    restoreSession();
+  }, []);
+
+  if (!isAuthReady) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
       </div>
     );
-  }
-
-  if (authError) {
-    if (authError.type === "user_not_registered") {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === "auth_required" || !isAuthenticated) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      navigateToLogin();
-      return null;
-    } else {
-      return <>Error</>;
-    }
   }
 
   return (
@@ -136,14 +123,11 @@ const router = createBrowserRouter([
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <RouterProvider router={router} />
-          <Toaster />
-          <VisualEditAgent />
-          <PoweredByBadge />
-        </QueryClientProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClientInstance}>
+        <RouterProvider router={router} />
+        <Toaster />
+        <VisualEditAgent />
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }
