@@ -11,3 +11,5 @@ app:
     bucket: aiverse-test
   jwt:
     secret-key: test-only-jwt-secret-key-0123456789-0123456789
+  cors:
+    allowed-origins: http://localhost:5173
