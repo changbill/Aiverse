@@ -350,9 +350,12 @@ spring:
 | `STORAGE_ACCESS_KEY`         | S3 또는 MinIO access key |
 | `STORAGE_SECRET_KEY`         | S3 또는 MinIO secret key |
 | `STORAGE_BUCKET`             | Object Storage bucket 이름 |
-| `JWT_SECRET_KEY`             | Access token 서명 키 (HMAC-SHA256, Base64) |
+| `JWT_SECRET_KEY`             | Access token 서명 키 (HMAC-SHA384, 최소 48바이트) |
+| `CORS_ALLOWED_ORIGINS`       | 허용할 프론트엔드 출처(쉼표 구분, `https://*.example.com` 같은 패턴 허용) |
 
 로컬 개발에서는 `backend/.env`에 Docker Compose 변수와 Spring Boot 로컬 실행 변수를 함께 정리한다. `application-local.yaml`은 `${ENV:로컬기본값}` 형태를 유지해 `.env`를 로드하지 않아도 기본 Docker Compose 구성으로 바로 실행할 수 있게 한다. `application-test.yaml`은 외부 환경 변수에 의존하지 않는 테스트 전용 고정값을 사용하고, `application-prod.yaml`은 기본값 없이 환경 변수 주입을 필수로 한다.
+
+**운영 배포(`docker compose up -d`, 예: 미니PC + Cloudflare Tunnel):** `backend/docker-compose.yml`의 `app` 서비스가 `Dockerfile`로 빌드된 백엔드 컨테이너를 `9999:8080`으로 노출한다. MinIO는 S3 API를 `9998:9000`(내부 `mysql`/`minio` 서비스명으로 앱 컨테이너와 통신)으로, 관리 콘솔은 `9001:9001`로 노출한다. `STORAGE_ENDPOINT`는 앱 컨테이너와 브라우저가 동일하게 사용하므로 내부 Docker 네트워크 주소가 아니라 MinIO를 외부에 노출한 공개 URL(Presigned URL이 이 주소로 발급됨)을 그대로 지정해야 한다. `.env`의 `SPRING_PROFILES_ACTIVE=prod`로 전환하고, `JWT_SECRET_KEY`·MinIO 자격증명(`MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD`, 앱의 `STORAGE_ACCESS_KEY`/`SECRET_KEY`로도 재사용)은 로컬 개발용과 분리된 값을 사용한다.
 
 ### CORS
 
